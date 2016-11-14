@@ -3,6 +3,7 @@
 import json
 import csv
 import sys
+import re
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
