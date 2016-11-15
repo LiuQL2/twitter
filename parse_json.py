@@ -4,6 +4,7 @@ import json
 import csv
 import sys
 import os
+import time
 from collections import OrderedDict
 
 reload(sys)
@@ -23,7 +24,7 @@ def read_json(file_name, path_data, path_filter,path_dubai):
     temp_filter_file = open(path_filter + 'no_dubai_' + file_name, 'wb')#构建新文件，用户保存过滤掉的信息
     temp_dubai_file = open(path_dubai + 'dubai_' + file_name, 'wb')#构建新文件，用于保存迪拜地区的数据
     for line in origin_data_json_file:#循环判断json文件中的每一行
-        print type(line)#输出改行数据
+        # print type(line)#输出改行数据
         verify_data(line, temp_dubai_file=temp_dubai_file,temp_filter_file=temp_filter_file)#调用函数对一条数据进行判断，并放入到对应的文件中
     origin_data_json_file.close()#依次关闭三个文件
     temp_filter_file.close()
@@ -47,16 +48,16 @@ def verify_data(line, temp_filter_file, temp_dubai_file):
         else:
             line = add_error_type(line, error_type='"enrichRegion, no Dubai"')#追加过滤原因
             temp_filter_file.write(line)
-            print 'filer_file: ', enrich_region
+            # print 'filer_file: ', enrich_region
     elif 'enrichRegion' not in row['actor']['location'].keys() and 'userDisplayName' in row['actor']['location'].keys():#enrichRegion不在location里面，但是userDisplayName在location里面
         user_display_name = row['actor']['location']['userDisplayName'].title()
         if 'Dubai' in user_display_name or 'دبي' in row['actor']['location']['userDisplayName']:
             temp_dubai_file.write(line)
-            print 'dubai_file: ', user_display_name
+            # print 'dubai_file: ', user_display_name
         else:#userDisplayName里面没有迪拜信息
             line = add_error_type(line, error_type='"userDisplayName, no enrichRegion, no Dubai"')#追加过滤原因
             temp_filter_file.write(line)
-            print 'filer_file: ', user_display_name
+            # print 'filer_file: ', user_display_name
     else:#两个字段都不在location里面，无法判断
         line = add_error_type(line, error_type='"no userDisplayName, no enrichRegion"')#追加过滤原因
         temp_filter_file.write(line)
@@ -83,18 +84,26 @@ def get_data_file_name():
     用于遍历所有保存原始数据的json文件，也只需要运行这一个文件即可
     :return:无返回内容
     """
+    start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     #下面三个路径可能需要改变。
     path_filter = 'D:/LiuQL/eHealth/twitter/data_filter/'#过滤掉的文件所在目录
     path_data = 'D:/LiuQL/eHealth/twitter/data/'#原始json数据所在的目录
     path_dubai = 'D:/LiuQL/eHealth/twitter/data_dubai/'#迪拜地区数据文件所在的目录
     file_name_list = os.listdir(path_data)#获得原始json文件所在目录里面的所有文件名称
     for file_name in file_name_list:
-        print file_name
         if 'part-r' in file_name and '.json' in file_name:
+            print file_name, 'is being parsing......'
             read_json(file_name,path_data, path_filter,path_dubai=path_dubai)
 
-path = 'D:/LiuQL/eHealth/twitter/'
-read_json('part-02.json',path_data=path,path_filter=path,path_dubai=path)
+    end_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+
+    print '================================================================='
+    print 'start_time:',start_time
+    print 'end_time:',end_time
+    print '================================================================='
+
+# path = 'D:/LiuQL/eHealth/twitter/'
+# read_json('part-02.json',path_data=path,path_filter=path,path_dubai=path)
 # read_json('no_enrichRegion.json')
 
-# get_data_file_name()
+get_data_file_name()
