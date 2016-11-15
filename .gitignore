@@ -4,3 +4,6 @@
 **/*.py[cod]
 build/
 dist/
+
+#twitter data
+data/
