@@ -90,12 +90,20 @@ def get_data_file_name():
     path_data = 'D:/LiuQL/eHealth/twitter/data/'#原始json数据所在的目录
     path_dubai = 'D:/LiuQL/eHealth/twitter/data_dubai/'#迪拜地区数据文件所在的目录
     file_name_list = os.listdir(path_data)#获得原始json文件所在目录里面的所有文件名称
+    index = 0
     for file_name in file_name_list:
-        if 'part-r' in file_name and '.json' in file_name:
-            print file_name, 'is being parsing......'
+        if 'part-r' in file_name and '.json' in file_name and 'crc' not in file_name:
+            index = index + 1
+            print index, file_name, 'is being parsing......'
             read_json(file_name,path_data, path_filter,path_dubai=path_dubai)
 
     end_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+
+    parse_info_file = open(os.getcwd() + '/parse_info.json', 'wb')
+    parse_info_file.write("start time:" + str(start_time) + '\n')
+    parse_info_file.write("end time:" + str(end_time) + '\n')
+    parse_info_file.write("total number of files that parsed:" + str(index) + '\n')
+    parse_info_file.close()
 
     print '================================================================='
     print 'start_time:',start_time
