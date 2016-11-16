@@ -84,13 +84,18 @@ def get_data_file_name():
     用于遍历所有保存原始数据的json文件，也只需要运行这一个文件即可
     :return:无返回内容
     """
-    start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+    path_data = raw_input('Please input the path of the directory where the ORIGIN json files are: ')
+    path_dubai = raw_input('Please input the path of the directory that you want the Dubai REGION data save to: ')
+    path_filter = raw_input('Please input the path of the directory that you want the No-Dubai data save to: ')
+    print '\n================Parsing json file is BEGAINING.....=====================\n'
+    time.sleep(5)
     #下面三个路径可能需要改变。
     path_filter = 'D:/LiuQL/eHealth/twitter/data_filter/'#过滤掉的文件所在目录
     path_data = 'D:/LiuQL/eHealth/twitter/data/'#原始json数据所在的目录
     path_dubai = 'D:/LiuQL/eHealth/twitter/data_dubai/'#迪拜地区数据文件所在的目录
     file_name_list = os.listdir(path_data)#获得原始json文件所在目录里面的所有文件名称
     index = 0
+    start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     for file_name in file_name_list:
         if 'part-r' in file_name and '.json' in file_name and 'crc' not in file_name:
             index = index + 1
