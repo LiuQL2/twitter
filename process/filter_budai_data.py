@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+用于过滤迪拜用户和非迪拜用户的数据
+"""
 import json
 import csv
 import sys
