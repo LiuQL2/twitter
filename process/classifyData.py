@@ -41,6 +41,7 @@ def parse_line(line):
     tweet['tweet']['id'] = row['tweet']['id']
     tweet['tweet']['postedTime'] = row['tweet']['postedTime']
     tweet['tweet']['retweetCount'] = row['tweet']['retweetCount']
+    tweet['tweet']['body'] = row['tweet']['body']
 
     tweet_type_list = ['"type":"reply"','"type":"tweet"','"type":"retweet"']
     if tweet['type'] == 'tweet':
@@ -51,6 +52,7 @@ def parse_line(line):
         tweet['originTweet']['id'] = row['originTweet']['id']
         tweet['originActor']['id'] = row['originActor']['id']
         tweet['originTweet']['retweetCount'] = row['originTweet']['retweetCount']
+        tweet['originTweet']['body'] = row['originTweet']['body']
     elif tweet['type'] == 'reply':
         tweet['tweet']['inReplyTo'] = row['tweet']['inReplyTo']
 
