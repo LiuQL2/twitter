@@ -20,6 +20,7 @@ def classify_data():
         read_file(file_name = file_name, path_data = path_data, file_save_to = file_save_to)
     file_save_to.close()
 
+    print 'The result file has been saved to: ', path_save_to + 'total_data.json'
 
 def read_file(file_name, path_data, file_save_to):
     data_file = open(path_data + file_name, 'r')
@@ -39,6 +40,7 @@ def parse_line(line):
     tweet['actor']['id'] = row['actor']['id']
     tweet['tweet']['id'] = row['tweet']['id']
     tweet['tweet']['postedTime'] = row['tweet']['postedTime']
+    tweet['tweet']['retweetCount'] = row['tweet']['retweetCount']
 
     tweet_type_list = ['"type":"reply"','"type":"tweet"','"type":"retweet"']
     if tweet['type'] == 'tweet':
@@ -48,6 +50,7 @@ def parse_line(line):
         tweet['originActor'] = {}
         tweet['originTweet']['id'] = row['originTweet']['id']
         tweet['originActor']['id'] = row['originActor']['id']
+        tweet['originTweet']['retweetCount'] = row['originTweet']['retweetCount']
     elif tweet['type'] == 'reply':
         tweet['tweet']['inReplyTo'] = row['tweet']['inReplyTo']
 
