@@ -21,7 +21,7 @@ def calculate_lifecycle():
     # path_save_to = raw_input('Please input the path of directory where you want the RESULT FILE saves to:')
     # file_save_to_name = raw_input('Please input the file name that you want the result saved to (eg:result.json):')
 
-    path_data = 'D:\LiuQL\eHealth\\twitter\\part-01.json'
+    path_data = 'D:\LiuQL\eHealth\\twitter\\total_data_small.json'
     path_save_to = 'D:\LiuQL\eHealth\\twitter\\'
     file_save_to_name = 'tweet_lifecycle.json'
 
@@ -82,9 +82,9 @@ def build_tweet_dataFrame(file_name):
         if row['type'] == 'tweet' and row['tweet']['id'] not in tweet_dataFrame.index :
             new_line = pd.DataFrame(data = [[row['tweet']['id'], row['tweet']['postedTime'], row['tweet']['postedTime'], 0.0, 0.0]], index=[row['tweet']['id']], columns=columns)
             tweet_dataFrame = tweet_dataFrame.append(new_line)
-            # print index ,'new row', row['tweet']['id']
+            print index ,'BUILDING DATAFRAME... new row', row['tweet']['id']
         else:
-            # print index, 'exits in dataFrame'
+            print index, 'BUILDING DATAFRAME... exits in dataFrame'
             pass
     data_file.close()
     return tweet_dataFrame
@@ -98,7 +98,9 @@ def process_tweet(file_name, tweet_dataFrame):
     :return: updated dataFrame
     """
     data_file = open(file_name, 'r')
+    index = 0
     for line in data_file:
+        index += 1
         row = json.loads(line)
         tweet_body = row['tweet']['body']
 
@@ -106,6 +108,8 @@ def process_tweet(file_name, tweet_dataFrame):
         if row['type'] == 'reply' and "00" + row['tweet']['inReplyTo'] in tweet_dataFrame.index:
             tweet_dataFrame.loc[["00" + row['tweet']['inReplyTo']],['end_time']] = row['tweet']['postedTime']
             tweet_dataFrame.loc[["00" + row['tweet']['inReplyTo']],['reply_count']] += 1
+            print index, 'PROCESSING TWEET... tweet type:', row[ 'type'], 'inReplyTo in the dataFrame and update "reply_count and end_time', '00' + row['tweet']['inReplyTo']
+
 
         # 'tweet' type.
         # the condition that the user retweet someone's tweet and attached his own words: update info of the tweet that be retweeted if it is included in dataFrame.
@@ -116,19 +120,27 @@ def process_tweet(file_name, tweet_dataFrame):
             if tweet_id in tweet_dataFrame.index:
                 tweet_dataFrame.loc[[tweet_id],['end_time']] = row['tweet']['postedTime']
                 tweet_dataFrame.loc[[tweet_id],['retweet_count']] += 1
-
+                print index, 'PROCESSING TWEET... tweet type:', row['type'], 'update "end_time and retweet_count" of tweet:', tweet_id
+            else:
+                print index , 'PROCESSING TWEET... tweet type:', row['type'], 'tweet:', tweet_id,'not in the dataFrame'
         # 'retwet' type
         elif row['type'] == 'retweet':
             origin_tweet_id = row['originTweet']['id']
             if origin_tweet_id in tweet_dataFrame.index:
                 tweet_dataFrame.loc[[origin_tweet_id],['end_time']] = row['tweet']['postedTime']
                 tweet_dataFrame.loc[[origin_tweet_id],['retweet_count']] += 1
+                print index, 'PROCESSING TWEET... tweet type:', row['type'], 'originweet in the dataFrame and update "end_time and retweet_count" of tweet:', tweet_id
+            else:
+                print index , 'PROCESSING TWEET... tweet type:', row['type'], 'originTweet not in the dataFrame'
             if '://twitter.com/' in tweet_body and '/status/' in tweet_body:
                 tweet_id_content = (tweet_body.split('://twitter.com/')[1]).split('/status/')[1]
                 tweet_id = '00' + tweet_id_content[:18]
                 if tweet_id in tweet_dataFrame.index:
                     tweet_dataFrame.loc[[tweet_id],['end_time']] = row['tweet']['postedTime']
                     tweet_dataFrame.loc[[tweet_id],['retweet_count']] += 1
+                    print index, 'PROCESSING TWEET... tweet type:', row['type'], 'body has twitter url, and updata "end_time and retweet_count" of tweet:', tweet_id
+                else:
+                    print index,  'PROCESSING TWEET... tweet type:', row['type'], 'body has twitter url, but not in the dataFrmae '
 
     data_file.close()
     return tweet_dataFrame
@@ -144,11 +156,14 @@ def get_lifecycle(tweet_dataFrmae,file_save_to_name,path_save_to):
     """
     file_save = open(path_save_to + file_save_to_name, 'wb')
     tweet_dataFrmae['lifecycle'] = 0
+    index = 0
     for tweet_id in tweet_dataFrmae.index:
+        index += 1
         start_time = tweet_dataFrmae.start_time[tweet_id]
         end_time = tweet_dataFrmae.end_time[tweet_id]
         tweet_dataFrmae.loc[[tweet_id], ['lifecycle']] = time.mktime(time.strptime(end_time,'%Y-%m-%dT%H:%M:%S.000Z')) - time.mktime(time.strptime(start_time,'%Y-%m-%dT%H:%M:%S.000Z'))
         line = json.dumps(dict(tweet_dataFrmae.loc[tweet_id])) + '\n'
+        print index, 'CALCULATING LIFECYCLE...', index, 'were calculated and writen to file'
         file_save.write(line)
     file_save.close()
     return tweet_dataFrmae
