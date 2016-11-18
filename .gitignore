@@ -5,6 +5,8 @@
 build/
 dist/
 
-processing_info.json
+*.txt
+
+
 #twitter data
 data/

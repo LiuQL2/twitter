@@ -106,7 +106,7 @@ def get_data_file_name():
 
     end_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
-    parse_info_file = open(os.getcwd() + '/processing_info.json', 'wb')
+    parse_info_file = open(os.getcwd().replace('process', '') + 'filter_data_info.txt', 'wb')
     parse_info_file.write("start time:" + str(start_time) + '\n')
     parse_info_file.write("end time:" + str(end_time) + '\n')
     parse_info_file.write("total number of files that parsed:" + str(index) + '\n')
