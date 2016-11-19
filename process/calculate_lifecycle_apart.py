@@ -35,7 +35,7 @@ def calculate_lifecycle():
     print 'updating the "end time, retweet count, reply count" of each tweet.....,please wait for a moment.'
     tweet_dataFrame_list = update_tweet(file_path=path_data, tweet_dataFrame_list=tweet_dataFrame_list, tweet_dataFrame_index_list=tweet_dataFrame_index_list)
     print 'claculating the lifecycle of each tweet......,please wait for a moment.'
-    tweet_dataFrame_list = get_lifecycle(tweet_dataFrmae_list=tweet_dataFrame_list,file_save_to_name=file_save_to_name,path_save_to=path_save_to)
+    tweet_dataFrame_list = calculate_lifecycle_for_each_tweet(tweet_dataFrmae_list=tweet_dataFrame_list,file_save_to_name=file_save_to_name,tweet_dataFrame_index_list=tweet_dataFrame_index_list,path_save_to=path_save_to)
     tweet_dataFrame = merge_tweet_dataFrame(tweet_dataFrame_list=tweet_dataFrame_list)
 
     # delete variables that not be used for longer
@@ -226,7 +226,7 @@ def get_tweet_id_index(tweet_id, tweet_dataFrame_index_list):
     return position
 
 
-def get_lifecycle(tweet_dataFrmae_list,file_save_to_name,path_save_to):
+def calculate_lifecycle_for_each_tweet(tweet_dataFrmae_list,tweet_dataFrame_index_list,file_save_to_name,path_save_to):
     """
     calculate lifecycle for each tweet in dataFrame acrooding to end time and start time.
     :param tweet_dataFrmae_list: the list that having all tweet-dataFrame.
@@ -247,7 +247,9 @@ def get_lifecycle(tweet_dataFrmae_list,file_save_to_name,path_save_to):
             start_time = tweet_dataFrmae.start_time[tweet_id]
             end_time = tweet_dataFrmae.end_time[tweet_id]
             tweet_dataFrmae.loc[[tweet_id], ['lifecycle']] = time.mktime(time.strptime(end_time,'%Y-%m-%dT%H:%M:%S.000Z')) - time.mktime(time.strptime(start_time,'%Y-%m-%dT%H:%M:%S.000Z'))
-            line = json.dumps(dict(tweet_dataFrmae.loc[tweet_id])) + '\n'
+            tweet_dict = dict(tweet_dataFrmae.loc[tweet_id])
+            tweet_dict['file_id'] = get_tweet_id_index(tweet_id=tweet_dict['tweet_id'], tweet_dataFrame_index_list=tweet_dataFrame_index_list)
+            line = json.dumps(tweet_dict) + '\n'
             # print index, 'CALCULATING LIFECYCLE...', index, 'were calculated and writen to file'
             file_save.write(line)
     file_save.close()
