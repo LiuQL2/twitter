@@ -22,23 +22,21 @@ def calculate_lifecycle():
     # path_save_to = raw_input('Please input the path of directory where you want the RESULT FILE saves to:')
     # file_save_to_name = raw_input('Please input the file name that you want the result saved to (eg:result.json):')
 
-    path_data = 'D:\LiuQL\eHealth\\twitter\\data_dudai\\'
     path_data = 'D:/LiuQL/eHealth/twitter/data_dubai/'
     path_save_to = 'D:/LiuQL/eHealth/twitter/'
     file_save_to_name = 'tweet_lifecycle_apart.json'
 
-    log_file = open(os.getcwd().replace('process','') + 'calculate_lifecycle_apart.log', 'a')
-    log_file.write('\n\n\n\n\n\n\n resatrt the program of Claculating lifecycle.\n\n\n\n\n\n\n')
+    write_log('########################resatrt the program of Claculating lifecycle.########################')
 
     #calculate lifecycle for each tewwt.
     start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     print 'the dataFrame of tweet is being building......,,please wait for a moment.'
-    tweet_dataFrame_list, tweet_dataFrame_index_list = build_tweet_dataFrame_list(file_path=path_data,log_file=log_file)
+    tweet_dataFrame_list, tweet_dataFrame_index_list = build_tweet_dataFrame_list(file_path=path_data)
     print 'updating the "end time, retweet count, reply count" of each tweet.....,please wait for a moment.'
-    tweet_dataFrame_list = update_tweet(file_path=path_data, tweet_dataFrame_list=tweet_dataFrame_list, tweet_dataFrame_index_list=tweet_dataFrame_index_list,log_file=log_file)
+    tweet_dataFrame_list = update_tweet(file_path=path_data, tweet_dataFrame_list=tweet_dataFrame_list, tweet_dataFrame_index_list=tweet_dataFrame_index_list)
     print 'claculating the lifecycle of each tweet......,please wait for a moment.'
-    tweet_dataFrame_list = get_lifecycle(tweet_dataFrmae_list=tweet_dataFrame_list,file_save_to_name=file_save_to_name,path_save_to=path_save_to,log_file=log_file)
-    tweet_dataFrame = merge_tweet_dataFrame(tweet_dataFrame_list=tweet_dataFrame_list,log_file=log_file)
+    tweet_dataFrame_list = get_lifecycle(tweet_dataFrmae_list=tweet_dataFrame_list,file_save_to_name=file_save_to_name,path_save_to=path_save_to)
+    tweet_dataFrame = merge_tweet_dataFrame(tweet_dataFrame_list=tweet_dataFrame_list)
 
     # delete variables that not be used for longer
     del tweet_dataFrame_list
@@ -73,11 +71,23 @@ def calculate_lifecycle():
     info_file.write("average retweet count:" + str(describe_dataFrame.retweet_count['mean']) + '\n')
     info_file.write("average lifecycle of tweets:" + str(describe_dataFrame.lifecycle['mean']) + ' seconds\n')
     info_file.close()
+
+    # write the result into log file.
+    write_log("start time:" + str(start_time))
+    write_log("end time:" + str(end_time))
+    write_log("total number of tweets:" + str(len(tweet_dataFrame.index)))
+    write_log("total number of tweets that been replied:" + str(len(tweet_dataFrame[tweet_dataFrame['reply_count'] > 0].index)))
+    write_log("total number of tweets that been retweeded:" + str(len(tweet_dataFrame[tweet_dataFrame['retweet_count'] > 0].index)))
+    write_log("average reply count:" + str(describe_dataFrame.reply_count['mean']))
+    write_log("average retweet count:" + str(describe_dataFrame.retweet_count['mean']) )
+    write_log("average lifecycle of tweets:" + str(describe_dataFrame.lifecycle['mean']) + ' seconds')
+
     print '##############the result has been saved in:',os.getcwd().replace('process', '') + 'calculate_lifecycle_info_apart.txt'
-    log_file.close()
+    write_log('The result has been saved in:' + os.getcwd().replace('process', '') + 'calculate_lifecycle_info_apart.txt')
+    write_log('************************ Successfully calculated the lifecycle for tweet.*********************\n' + '*' * 100 + '\n' + '*' * 100 + '\n' + '*' * 100 + '\n\n')
 
 
-def build_tweet_dataFrame_list(file_path, log_file):
+def build_tweet_dataFrame_list(file_path):
     """
     build tweet_dataFrame_list, that a dataFrame contains the data of a file, and all dataFrames put into one list.
     :param file_path: the path of directory that files in.
@@ -90,8 +100,7 @@ def build_tweet_dataFrame_list(file_path, log_file):
     for file_name in file_name_list:
         index = index + 1
         print index,'BUILDING DATAFRAME according to file:',index, file_name
-        temp_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        log_file.write(temp_time + str(index) + ': BUILDING DATAFRAME according to file: ' + str(file_name) + '\n')
+        write_log(str(index) + ': BUILDING DATAFRAME according to file: ' + str(file_name))
         tweet_dataFrame, tweet_dataFrame_index = build_tweet_dataFrame(file_path + file_name)
         tweet_dataFrame_list.append(tweet_dataFrame)
         tweet_dataFrame_index_list.append(tweet_dataFrame_index)
@@ -123,7 +132,7 @@ def build_tweet_dataFrame(file_name):
     return tweet_dataFrame, list(tweet_dataFrame.index)
 
 
-def update_tweet(file_path, tweet_dataFrame_list, tweet_dataFrame_index_list,log_file):
+def update_tweet(file_path, tweet_dataFrame_list, tweet_dataFrame_index_list):
     """
     update the info of each tweet in the dataFrame accroedig to other tweets.
     :param file_path: The path of directory that all files in.
@@ -135,9 +144,8 @@ def update_tweet(file_path, tweet_dataFrame_list, tweet_dataFrame_index_list,log
     file_index = 0
     for file_name in file_name_list:
         file_index = file_index + 1
-        print 'UPDATING INFO OF TWEET...',file_index, 'is processing......'
-        temp_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        log_file.write(temp_time +  ': UPDATING INFO OF TWEET...' + str(file_index) +  'is processing......\n')
+        print file_index, 'UPDATING INFO OF TWEET...',file_name, 'is processing......'
+        write_log(str(file_index) + ': UPDATING INFO OF TWEET...' + str(file_name) +  'is being processed......')
         data_file = open(file_path + file_name, 'r')
         index = 0
         for line in data_file:
@@ -218,7 +226,7 @@ def get_tweet_id_index(tweet_id, tweet_dataFrame_index_list):
     return position
 
 
-def get_lifecycle(tweet_dataFrmae_list,file_save_to_name,path_save_to,log_file):
+def get_lifecycle(tweet_dataFrmae_list,file_save_to_name,path_save_to):
     """
     calculate lifecycle for each tweet in dataFrame acrooding to end time and start time.
     :param tweet_dataFrmae_list: the list that having all tweet-dataFrame.
@@ -230,9 +238,8 @@ def get_lifecycle(tweet_dataFrmae_list,file_save_to_name,path_save_to,log_file):
     dataFrame_index = 0
     for tweet_dataFrmae in tweet_dataFrmae_list:
         dataFrame_index = dataFrame_index + 1
-        temp_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        print 'CALCULATING LIFECYCLE...', dataFrame_index, 'dataFrame is being calculating......'
-        log_file.write(temp_time + ': CALCULATING LIFECYCLE...   ' + dataFrame_index + '   dataFrame is being calculating......\n')
+        print dataFrame_index, ': CALCULATING LIFECYCLE...', dataFrame_index, 'dataFrame is being calculated......'
+        write_log( str(dataFrame_index) + ': CALCULATING LIFECYCLE...   ' + str(dataFrame_index) + ':dataFrame is being calculated......')
         tweet_dataFrmae['lifecycle'] = 0
         index = 0
         for tweet_id in tweet_dataFrmae.index:
@@ -246,7 +253,7 @@ def get_lifecycle(tweet_dataFrmae_list,file_save_to_name,path_save_to,log_file):
     file_save.close()
     return tweet_dataFrmae_list
 
-def merge_tweet_dataFrame(tweet_dataFrame_list,log_file):
+def merge_tweet_dataFrame(tweet_dataFrame_list):
     """
     merge all tweet dataFrame into one dataFrame.
     :param tweet_dataFrame_list: the list that having all tweet-dataFrame.
@@ -256,10 +263,20 @@ def merge_tweet_dataFrame(tweet_dataFrame_list,log_file):
     index = 0
     for dataFrame in tweet_dataFrame_list:
         index = index + 1
-        temp_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        print 'MERGERING DATAFRAME...',index, 'dataFrame is being mergering...'
-        log_file.write(temp_time + ': MERGERING DATAFRAME... ' + str(index) +  'dataFrame is being mergering...\n')
-        tweet_dataFrame.append(dataFrame)
+        print index, 'MERGERING DATAFRAME...',index, 'dataFrame is being merged...'
+        print dataFrame.describe()
+        write_log( str(index) + ': MERGERING DATAFRAME... ' + str(index) +  'dataFrame is being merged...')
+        tweet_dataFrame = tweet_dataFrame.append(dataFrame)
+    print '*********************'
+    print tweet_dataFrame.head()
     return tweet_dataFrame
+
+
+def write_log(information):
+    log_file = open(os.getcwd().replace('process','') + 'calculate_lifecycle_apart.log', 'a+')
+    temp_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+    log_file.write('[' + temp_time + ']' + ': ' + information + '\n')
+    log_file.close()
+
 
 calculate_lifecycle()
