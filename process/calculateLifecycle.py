@@ -21,7 +21,7 @@ def calculate_lifecycle():
     # path_save_to = raw_input('Please input the path of directory where you want the RESULT FILE saves to:')
     # file_save_to_name = raw_input('Please input the file name that you want the result saved to (eg:result.json):')
 
-    path_data = 'D:\LiuQL\eHealth\\twitter\\total_data_small.json'
+    path_data = 'D:\LiuQL\eHealth\\twitter\\part-01.json'
     path_save_to = 'D:\LiuQL\eHealth\\twitter\\'
     file_save_to_name = 'tweet_lifecycle.json'
 
@@ -79,7 +79,8 @@ def build_tweet_dataFrame(file_name):
     for line in data_file:
         index = index + 1
         row = json.loads(line, object_pairs_hook=OrderedDict)
-        if row['type'] == 'tweet' and row['tweet']['id'] not in tweet_dataFrame.index :
+        # if row['type'] == 'tweet' and row['tweet']['id'] not in tweet_dataFrame.index :
+        if row['type'] == 'tweet':
             new_line = pd.DataFrame(data = [[row['tweet']['id'], row['tweet']['postedTime'], row['tweet']['postedTime'], 0.0, 0.0]], index=[row['tweet']['id']], columns=columns)
             tweet_dataFrame = tweet_dataFrame.append(new_line)
             print index ,'BUILDING DATAFRAME... new row', row['tweet']['id']
@@ -87,7 +88,7 @@ def build_tweet_dataFrame(file_name):
             print index, 'BUILDING DATAFRAME... exits in dataFrame'
             pass
     data_file.close()
-    return tweet_dataFrame
+    return tweet_dataFrame.drop_duplicates()
 
 
 def process_tweet(file_name, tweet_dataFrame):
