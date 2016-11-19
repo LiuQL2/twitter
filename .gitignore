@@ -2,11 +2,10 @@
 
 #python
 **/*.py[cod]
+**/*.log
+**/*.txt
 build/
 dist/
-
-*.txt
-
 
 #twitter data
 data/

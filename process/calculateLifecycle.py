@@ -21,7 +21,8 @@ def calculate_lifecycle():
     # path_save_to = raw_input('Please input the path of directory where you want the RESULT FILE saves to:')
     # file_save_to_name = raw_input('Please input the file name that you want the result saved to (eg:result.json):')
 
-    path_data = 'D:\LiuQL\eHealth\\twitter\\part-01.json'
+    path_data = 'D:\LiuQL\eHealth\\twitter\\total_data.json'
+    # path_data = 'D:\LiuQL\eHealth\\twitter\\total_data_small.json'
     path_save_to = 'D:\LiuQL\eHealth\\twitter\\'
     file_save_to_name = 'tweet_lifecycle.json'
 
@@ -116,7 +117,8 @@ def process_tweet(file_name, tweet_dataFrame):
         # the condition that the user retweet someone's tweet and attached his own words: update info of the tweet that be retweeted if it is included in dataFrame.
         # the condition that a user posts a new tweet just contains his own origin content: do nothing.
         elif row['type'] == 'tweet' and  '://twitter.com/' in tweet_body and '/status/' in tweet_body:
-            tweet_id_content = (tweet_body.split('://twitter.com/')[1]).split('/status/')[1]
+            tweet_body_content_list = tweet_body.split('://twitter.com/')
+            tweet_id_content = [content.split('/status/')[1] for content in tweet_body_content_list if '/status/' in content][0]
             tweet_id = '00' + tweet_id_content[:18]
             if tweet_id in tweet_dataFrame.index:
                 tweet_dataFrame.loc[[tweet_id],['end_time']] = row['tweet']['postedTime']
@@ -134,7 +136,8 @@ def process_tweet(file_name, tweet_dataFrame):
             else:
                 print index , 'PROCESSING TWEET... tweet type:', row['type'], 'originTweet not in the dataFrame'
             if '://twitter.com/' in tweet_body and '/status/' in tweet_body:
-                tweet_id_content = (tweet_body.split('://twitter.com/')[1]).split('/status/')[1]
+                tweet_body_content_list = tweet_body.split('://twitter.com/')
+                tweet_id_content = [content.split('/status/')[1] for content in tweet_body_content_list if '/status/' in content][0]
                 tweet_id = '00' + tweet_id_content[:18]
                 if tweet_id in tweet_dataFrame.index:
                     tweet_dataFrame.loc[[tweet_id],['end_time']] = row['tweet']['postedTime']
