@@ -293,7 +293,6 @@ def merge_tweet_dataFrame(tweet_dataFrame_list):
         print dataFrame.describe()
         write_log( str(index) + ': MERGERING DATAFRAME... ' + str(index) +  ' dataFrame is being merged...')
         tweet_dataFrame = tweet_dataFrame.append(dataFrame)
-    print '*********************'
     return tweet_dataFrame
 
 
@@ -358,7 +357,6 @@ def compare_time(origin_time, new_time,tweet_type):
     :param new_time: the new time that a new tweet posted.
     :return: the bigger one between origin_time and new_time.
     """
-    print '********************************************',tweet_type,type(origin_time), origin_time
     temp_origin_time = time.mktime(time.strptime(origin_time, '%Y-%m-%dT%H:%M:%S.000Z'))
     temp_new_time = time.mktime(time.strptime(new_time, '%Y-%m-%dT%H:%M:%S.000Z'))
     if temp_new_time >= temp_origin_time:
