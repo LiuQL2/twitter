@@ -9,6 +9,7 @@ import json
 import os
 from collections import OrderedDict
 from utility.functions import get_dirlist
+from utility.functions import pandas_dataFrame_to_file
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -18,9 +19,11 @@ def calculate_lifecycle():
     calculate lifecycle for each tweet.
     :return: Nothing to return.
     """
-    path_data = 'D:/LiuQL/eHealth/twitter/data_dubai/'
-    path_save_to = 'D:/LiuQL/eHealth/twitter/'
+    # path_data = 'D:/LiuQL/eHealth/twitter/data_dubai/'
+    # path_save_to = 'D:/LiuQL/eHealth/twitter/'
     file_save_to_name = 'tweet_lifecycle_apart.json'
+    path_data = '/pegasus/harir/Qianlong/data/data_dubai/'
+    path_save_to = '/pegasus/harir/Qianlong/data/'
     # path_data = raw_input('Please input the FILES which contain the data:')
     # path_save_to = raw_input('Please input the path of directory where you want the RESULT FILE saves to:')
     # file_save_to_name = raw_input('Please input the file name that you want the result saved to (eg:result.json):')
@@ -110,7 +113,7 @@ def build_tweet_dataFrame_list(file_path):
 
     tweet_dataFrame_list,tweet_dataFrame_index_list = add_origin_tweet_to_dataFrame(file_name_list=file_name_list,
                                                              file_path=file_path,tweet_dataFrame_index_list=tweet_dataFrame_index_list, tweet_dataFrame_list=tweet_dataFrame_list,actor_list=dubai_actor_list)
-    return tweet_dataFrame_list, tweet_dataFrame_index_list, len(dubai_actor_list)
+    return tweet_dataFrame_list, tweet_dataFrame_index_list, len(dubai_actor_list),file_name_list
 
 
 def build_tweet_dataFrame(file_name, actor_list):
@@ -160,7 +163,7 @@ def add_origin_tweet_to_dataFrame(file_name_list, file_path, tweet_dataFrame_lis
                 origin_tweet_id = row['originTweet']['id']
                 origin_tweet_id_index = get_tweet_id_index(tweet_id=origin_tweet_id,tweet_dataFrame_index_list=tweet_dataFrame_index_list)
                 if origin_actor_id in actor_list and origin_tweet_id_index == None:
-                    new_line = pd.DataFrame(data=[[row['originTweet']['id'], row['originTweet']['postedTime'], row['originTweet']['postedTime'], 0.0,1.0]], index=[row['originTweet']['id']], columns=columns)
+                    new_line = pd.DataFrame(data=[[row['originTweet']['id'], row['originTweet']['postedTime'], row['originTweet']['postedTime'], 0.0,0.0]], index=[row['originTweet']['id']], columns=columns)
                     tweet_dataFrame_list[index - 1] = tweet_dataFrame_list[index - 1].append(new_line)
                     tweet_dataFrame_index_list[index - 1].append(origin_tweet_id)
             else:
@@ -271,7 +274,7 @@ def calculate_lifecycle_for_each_tweet(tweet_dataFrmae_list,tweet_dataFrame_inde
             end_time = tweet_dataFrmae.end_time[tweet_id]
             tweet_dataFrmae.loc[[tweet_id], ['lifecycle']] = time.mktime(time.strptime(end_time,'%Y-%m-%dT%H:%M:%S.000Z')) - time.mktime(time.strptime(start_time,'%Y-%m-%dT%H:%M:%S.000Z'))
             tweet_dict = dict(tweet_dataFrmae.loc[tweet_id])
-            tweet_dict['file_id'] = get_tweet_id_index(tweet_id=tweet_dict['tweet_id'], tweet_dataFrame_index_list=tweet_dataFrame_index_list)
+            tweet_dict['file_name'] = get_tweet_id_index(tweet_id=tweet_dict['tweet_id'], tweet_dataFrame_index_list=tweet_dataFrame_index_list)
             line = json.dumps(tweet_dict) + '\n'
             # print index, 'CALCULATING LIFECYCLE...', index, 'were calculated and writen to file'
             file_save.write(line)
