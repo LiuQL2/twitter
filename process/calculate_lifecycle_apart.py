@@ -10,6 +10,7 @@ import os
 from collections import OrderedDict
 from utility.functions import get_dirlist
 from utility.functions import pandas_dataFrame_to_file
+from utility.functions import write_log
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -19,30 +20,40 @@ def calculate_lifecycle():
     calculate lifecycle for each tweet.
     :return: Nothing to return.
     """
-    path_data = 'D:/LiuQL/eHealth/twitter/data_dubai/'
-    path_save_to = 'D:/LiuQL/eHealth/twitter/'
-    file_save_to_name = 'tweet_lifecycle_apart.json'
+    path_data = 'D:/LiuQL/eHealth/twitter/data/data_dubai/'
+    path_save_to = 'D:/LiuQL/eHealth/twitter/data/'
+
     # path_data = '/pegasus/harir/Qianlong/data/data_dubai/'
     # path_save_to = '/pegasus/harir/Qianlong/data/'
+
+    file_save_to_name = 'tweet_lifecycle_apart.json'
+
     # path_data = raw_input('Please input the FILES which contain the data:')
     # path_save_to = raw_input('Please input the path of directory where you want the RESULT FILE saves to:')
     # file_save_to_name = raw_input('Please input the file name that you want the result saved to (eg:result.json):')
 
-    write_log('########################resatrt the program of Claculating lifecycle.########################')
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information='########################resatrt the program of Claculating lifecycle.########################')
 
     #calculate lifecycle for each tewwt.
     start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     print 'the dataFrame of tweet is being building......,,please wait for a moment.'
-    tweet_dataFrame_list, tweet_dataFrame_index_list, actor_number = build_tweet_dataFrame_list(file_path=path_data)
+    tweet_dataFrame_dict, actor_number = build_tweet_dataFrame_dict(file_path=path_data)
+
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information='tweet_dataFrame_dict is being saving to file.')
+    pandas_dataFrame_to_file(operation_type='tweet_dataFrame',file_path=path_save_to,dataFrame_dict=tweet_dataFrame_dict)
+
     print 'updating the "end time, retweet count, reply count" of each tweet.....,please wait for a moment.'
-    tweet_dataFrame_list = update_tweet(file_path=path_data, tweet_dataFrame_list=tweet_dataFrame_list, tweet_dataFrame_index_list=tweet_dataFrame_index_list)
+    tweet_dataFrame_dict = update_tweet(file_path=path_data, tweet_dataFrame_dict=tweet_dataFrame_dict)
+
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information='updated tweet_dataFrame_dict is being saving to file')
+    pandas_dataFrame_to_file(operation_type='updated_tweet_dataFrame', file_path=path_save_to,dataFrame_dict=tweet_dataFrame_dict)
+
     print 'claculating the lifecycle of each tweet......,please wait for a moment.'
-    tweet_dataFrame_list = calculate_lifecycle_for_each_tweet(tweet_dataFrmae_list=tweet_dataFrame_list,file_save_to_name=file_save_to_name,tweet_dataFrame_index_list=tweet_dataFrame_index_list,path_save_to=path_save_to)
-    tweet_dataFrame = merge_tweet_dataFrame(tweet_dataFrame_list=tweet_dataFrame_list)
+    tweet_dataFrame_dict = calculate_lifecycle_for_each_tweet(tweet_dataFrame_dict=tweet_dataFrame_dict,file_save_to_name=file_save_to_name,path_save_to=path_save_to)
+    tweet_dataFrame = merge_tweet_dataFrame(tweet_dataFrame_dict=tweet_dataFrame_dict)
 
     # delete variables that not be used for longer
-    del tweet_dataFrame_list
-    del tweet_dataFrame_index_list
+    del tweet_dataFrame_dict
 
     #output the result.
     describe_dataFrame = tweet_dataFrame.describe()
@@ -77,46 +88,50 @@ def calculate_lifecycle():
     info_file.close()
 
     # write the result into log file.
-    write_log("start time:" + str(start_time))
-    write_log("end time:" + str(end_time))
-    write_log("total number of tweets:" + str(len(tweet_dataFrame.index)))
-    write_log("total number of Dubai's actor:" + str(actor_number))
-    write_log("total number of tweets that been replied:" + str(len(tweet_dataFrame[tweet_dataFrame['reply_count'] > 0].index)))
-    write_log("total number of tweets that been retweeded:" + str(len(tweet_dataFrame[tweet_dataFrame['retweet_count'] > 0].index)))
-    write_log("average reply count:" + str(describe_dataFrame.reply_count['mean']))
-    write_log("average retweet count:" + str(describe_dataFrame.retweet_count['mean']) )
-    write_log("average lifecycle of tweets:" + str(describe_dataFrame.lifecycle['mean']) + ' seconds')
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="start time:" + str(start_time))
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="end time:" + str(end_time))
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="total number of tweets:" + str(len(tweet_dataFrame.index)))
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="total number of Dubai's actor:" + str(actor_number))
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="total number of tweets that been replied:" + str(len(tweet_dataFrame[tweet_dataFrame['reply_count'] > 0].index)))
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="total number of tweets that been retweeded:" + str(len(tweet_dataFrame[tweet_dataFrame['retweet_count'] > 0].index)))
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="average reply count:" + str(describe_dataFrame.reply_count['mean']))
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="average retweet count:" + str(describe_dataFrame.retweet_count['mean']) )
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="average lifecycle of tweets:" + str(describe_dataFrame.lifecycle['mean']) + ' seconds')
 
     print '##############the result has been saved in:',os.getcwd().replace('process', '') + 'calculate_lifecycle_info_apart.txt'
-    write_log('The result has been saved in:' + os.getcwd().replace('process', '') + 'calculate_lifecycle_info_apart.txt')
-    write_log('************************ Successfully calculated the lifecycle for tweet.*********************\n' + '*' * 100 + '\n' + '*' * 100 + '\n' + '*' * 100 + '\n\n')
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information='The result has been saved in:' + os.getcwd().replace('process', '') + 'calculate_lifecycle_info_apart.txt')
+    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information='************************ Successfully calculated the lifecycle for tweet.*********************\n' + '*' * 100 + '\n' + '*' * 100 + '\n' + '*' * 100 + '\n\n')
 
 
-def build_tweet_dataFrame_list(file_path):
+def build_tweet_dataFrame_dict(file_path):
     """
     build tweet_dataFrame_list, that a dataFrame contains the data of a file, and all dataFrames put into one list.
     :param file_path: the path of directory that files in.
     :return: the tweet_dataFrame_list, tweet_dataFrame_index_list, the number of Dubai's actors.
     """
-    tweet_dataFrame_list = []
-    tweet_dataFrame_index_list = []
+    tweet_dataFrame_dict = {}
     file_name_list = get_dirlist(file_path)
-    dubai_actor_list = get_dubai_actor_list(file_name_list=file_name_list, file_path=file_path)
+    for file_name in file_name_list:
+        tweet_dataFrame_dict[file_name] = list()
+
+    dubai_actor_dict = get_dubai_actor_dict(file_name_list=file_name_list, file_path=file_path)
     index = 0
     for file_name in file_name_list:
         index = index + 1
         print index,': BUILDING TWEET DATAFRAME according to file:',index, file_name
-        write_log(str(index) + ': BUILDING TWEET DATAFRAME according to file: ' + str(file_name))
-        tweet_dataFrame, tweet_dataFrame_index = build_tweet_dataFrame(file_name=file_path + file_name, actor_list = dubai_actor_list)
-        tweet_dataFrame_list.append(tweet_dataFrame)
-        tweet_dataFrame_index_list.append(tweet_dataFrame_index)
+        write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information=str(index) + ': BUILDING TWEET DATAFRAME according to file: ' + str(file_name))
+        tweet_dataFrame = build_tweet_dataFrame(file_name=file_name, file_path = file_path)
+        tweet_dataFrame_dict[file_name] = tweet_dataFrame
 
-    tweet_dataFrame_list,tweet_dataFrame_index_list = add_origin_tweet_to_dataFrame(file_name_list=file_name_list,
-                                                             file_path=file_path,tweet_dataFrame_index_list=tweet_dataFrame_index_list, tweet_dataFrame_list=tweet_dataFrame_list,actor_list=dubai_actor_list)
-    return tweet_dataFrame_list, tweet_dataFrame_index_list, len(dubai_actor_list),file_name_list
+    tweet_dataFrame_dict = add_origin_tweet_to_dataFrame(file_name_list=file_name_list,file_path=file_path, tweet_dataFrame_dict=tweet_dataFrame_dict,actor_dict=dubai_actor_dict)
+
+    actor_number = 0
+    for key in dubai_actor_dict.keys():
+        actor_number = actor_number + len(dubai_actor_dict[key])
+    return tweet_dataFrame_dict,actor_number
 
 
-def build_tweet_dataFrame(file_name, actor_list):
+def build_tweet_dataFrame(file_name,file_path):
     """
     build dataFrame of pandas for each tweet, no duplicate records in this dataFrame.
     :param file_name: The file that contain all the data of one file: path + file_name.
@@ -124,7 +139,7 @@ def build_tweet_dataFrame(file_name, actor_list):
     :return: dataFrame of tweets, a list contains the index of the dataFrame
     """
     tweet_dataFrame = pd.DataFrame()
-    data_file = open(file_name, 'r')
+    data_file = open(file_path + file_name, 'r')
     columns = ['tweet_id', 'start_time', 'end_time', 'reply_count', 'retweet_count']
     for line in data_file:
         row = json.loads(line, object_pairs_hook=OrderedDict)
@@ -136,10 +151,12 @@ def build_tweet_dataFrame(file_name, actor_list):
             pass
     data_file.close()
     tweet_dataFrame = tweet_dataFrame.drop_duplicates()
-    return tweet_dataFrame, list(tweet_dataFrame.index)
+    return tweet_dataFrame
 
 
-def add_origin_tweet_to_dataFrame(file_name_list, file_path, tweet_dataFrame_list, tweet_dataFrame_index_list, actor_list):
+
+
+def add_origin_tweet_to_dataFrame(file_name_list, file_path, tweet_dataFrame_dict, actor_dict):
     """
     add originTweet to the tweet_dataFrame_list.
     :param file_name_list: the list of all files' name
@@ -153,27 +170,28 @@ def add_origin_tweet_to_dataFrame(file_name_list, file_path, tweet_dataFrame_lis
     columns = ['tweet_id', 'start_time', 'end_time', 'reply_count', 'retweet_count']
     for file_name in file_name_list:
         index = index + 1
-        write_log(str(index) + ': Adding retweet to tweet_dataFrame file:' + file_name + ' is being processing...')
-        print str(index), ': Adding retweet to tweet_dataFrame file:' + file_name + ' is being processing...'
+        write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information=str(index) + ': Adding originTweet to tweet_dataFrame file:' + file_name + ' is being processing...')
+        print str(index), ': Adding originTweet to tweet_dataFrame file:' + file_name + ' is being processing...'
         file = open(file_path + file_name, 'r')
+
         for line in file:
             row = json.loads(line)
             if row['type'] == 'retweet':
                 origin_actor_id = row['originActor']['id']
                 origin_tweet_id = row['originTweet']['id']
-                origin_tweet_id_index = get_tweet_id_index(tweet_id=origin_tweet_id,tweet_dataFrame_index_list=tweet_dataFrame_index_list)
-                if origin_actor_id in actor_list and origin_tweet_id_index == None:
-                    new_line = pd.DataFrame(data=[[row['originTweet']['id'], row['originTweet']['postedTime'], row['originTweet']['postedTime'], 0.0,0.0]], index=[row['originTweet']['id']], columns=columns)
-                    tweet_dataFrame_list[index - 1] = tweet_dataFrame_list[index - 1].append(new_line)
-                    tweet_dataFrame_index_list[index - 1].append(origin_tweet_id)
+                actor_index = whether_in_dict(type_dict = 'actor_dict',str = origin_actor_id, dictionary = actor_dict)
+                tweet_index = whether_in_dict(type_dict = 'index_dict',str = origin_tweet_id, dictionary = get_tweet_dataFrame_index_dict(tweet_dataFrame_dict))
+                if actor_index != None and tweet_index == None :
+                    new_line = pd.DataFrame(data=[[row['originTweet']['id'], row['originTweet']['postedTime'], row['originTweet']['postedTime'], 0.0,1.0]], index=[row['originTweet']['id']], columns=columns)
+                    tweet_dataFrame_dict[file_name] = tweet_dataFrame_dict[file_name].append(new_line)
             else:
                 pass
         file.close()
-    return tweet_dataFrame_list, tweet_dataFrame_index_list
+    return tweet_dataFrame_dict
 
 
 
-def update_tweet(file_path, tweet_dataFrame_list, tweet_dataFrame_index_list):
+def update_tweet(file_path, tweet_dataFrame_dict):
     """
     update the info of each tweet in the dataFrame accroedig to other tweets.
     :param file_path: The path of directory that all files in.
@@ -181,12 +199,13 @@ def update_tweet(file_path, tweet_dataFrame_list, tweet_dataFrame_index_list):
     :param tweet_dataFrame_index_list: the list containing the index of each dataFrame in tweet_dataFrame_list.
     :return: updated tweet_dataFrame_list.
     """
+    tweet_dataFrame_index_dict = get_tweet_dataFrame_index_dict(tweet_dataFrame_dict)
     file_name_list = get_dirlist(file_path)
     file_index = 0
     for file_name in file_name_list:
         file_index = file_index + 1
         print file_index, 'UPDATING INFO OF TWEET...',file_name, 'is processing......'
-        write_log(str(file_index) + ': UPDATING INFO OF TWEET...' + str(file_name) +  'is being processed......')
+        write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information=str(file_index) + ': UPDATING INFO OF TWEET...' + str(file_name) +  'is being processed......')
         data_file = open(file_path + file_name, 'r')
         index = 0
         for line in data_file:
@@ -197,11 +216,11 @@ def update_tweet(file_path, tweet_dataFrame_list, tweet_dataFrame_index_list):
             # 'reply' type, update info of tweet that the reply reply to.
             if row['type'] == 'reply':
                 tweet_id = "00" + row['tweet']['inReplyTo']
-                tweet_id_index =  get_tweet_id_index(tweet_id=tweet_id,tweet_dataFrame_index_list=tweet_dataFrame_index_list)
-                if tweet_id_index != None:
-                    temp_time = compare_time(origin_time=tweet_dataFrame_list[tweet_id_index].end_time[tweet_id], new_time=row['tweet']['postedTime'],tweet_type= row['type'])
-                    tweet_dataFrame_list[tweet_id_index].loc[[tweet_id],['end_time']] = temp_time
-                    tweet_dataFrame_list[tweet_id_index].loc[[tweet_id],['reply_count']] += 1
+                tweet_index = whether_in_dict(str=tweet_id, dictionary=tweet_dataFrame_index_dict)
+                if tweet_index != None:
+                    temp_time = compare_time(origin_time=tweet_dataFrame_dict[tweet_index].end_time[tweet_id], new_time=row['tweet']['postedTime'])
+                    tweet_dataFrame_dict[tweet_index].loc[[tweet_id],['end_time']] = temp_time
+                    tweet_dataFrame_dict[tweet_index].loc[[tweet_id],['reply_count']] += 1
                     # print index, 'PROCESSING TWEET... tweet type:', row[ 'type'], 'inReplyTo in the dataFrame and update "reply_count and end_time', '00' + row['tweet']['inReplyTo']
                 else:
                     pass
@@ -213,11 +232,11 @@ def update_tweet(file_path, tweet_dataFrame_list, tweet_dataFrame_index_list):
                 tweet_body_content_list = tweet_body.split('://twitter.com/')
                 tweet_id_content = [content.split('/status/')[1] for content in tweet_body_content_list if '/status/' in content][0]
                 tweet_id = '00' + tweet_id_content[:18]
-                tweet_id_index = get_tweet_id_index(tweet_id=tweet_id, tweet_dataFrame_index_list=tweet_dataFrame_index_list)
-                if tweet_id_index != None:
-                    temp_time = compare_time(origin_time=tweet_dataFrame_list[tweet_id_index].end_time[tweet_id],new_time=row['tweet']['postedTime'],tweet_type= row['type'])
-                    tweet_dataFrame_list[tweet_id_index].loc[[tweet_id],['end_time']] = temp_time
-                    tweet_dataFrame_list[tweet_id_index].loc[[tweet_id],['retweet_count']] += 1
+                tweet_index = whether_in_dict(str=tweet_id, dictionary=tweet_dataFrame_index_dict)
+                if tweet_index != None:
+                    temp_time = compare_time(origin_time=tweet_dataFrame_dict[tweet_index].end_time[tweet_id],new_time=row['tweet']['postedTime'])
+                    tweet_dataFrame_dict[tweet_index].loc[[tweet_id],['end_time']] = temp_time
+                    tweet_dataFrame_dict[tweet_index].loc[[tweet_id],['retweet_count']] += 1
                     # print index, 'PROCESSING TWEET... tweet type:', row['type'], 'update "end_time and retweet_count" of tweet:', tweet_id
                 else:
                     # print index , 'PROCESSING TWEET... tweet type:', row['type'], 'tweet:', tweet_id,'not in the dataFrame'
@@ -225,11 +244,11 @@ def update_tweet(file_path, tweet_dataFrame_list, tweet_dataFrame_index_list):
             # 'retwet' type
             elif row['type'] == 'retweet':
                 origin_tweet_id = row['originTweet']['id']
-                origin_tweet_id_index = get_tweet_id_index(tweet_id=origin_tweet_id, tweet_dataFrame_index_list=tweet_dataFrame_index_list)
-                if origin_tweet_id_index != None:
-                    temp_time = compare_time(origin_time=tweet_dataFrame_list[origin_tweet_id_index].end_time[origin_tweet_id],new_time=row['tweet']['postedTime'],tweet_type= row['type']+'origin')
-                    tweet_dataFrame_list[origin_tweet_id_index].loc[[origin_tweet_id],['end_time']] = temp_time
-                    tweet_dataFrame_list[origin_tweet_id_index].loc[[origin_tweet_id],['retweet_count']] += 1
+                origin_tweet_index = whether_in_dict(str = origin_tweet_id, dictionary=tweet_dataFrame_index_dict)
+                if origin_tweet_index != None:
+                    temp_time = compare_time(origin_time=tweet_dataFrame_dict[origin_tweet_index].end_time[origin_tweet_id],new_time=row['tweet']['postedTime'])
+                    tweet_dataFrame_dict[origin_tweet_index].loc[[origin_tweet_id],['end_time']] = temp_time
+                    tweet_dataFrame_dict[origin_tweet_index].loc[[origin_tweet_id],['retweet_count']] += 1
                     # print index, 'PROCESSING TWEET... tweet type:', row['type'], 'originweet in the dataFrame and update "end_time and retweet_count" of tweet:', tweet_id
                 else:
                     # print index , 'PROCESSING TWEET... tweet type:', row['type'], 'originTweet not in the dataFrame'
@@ -238,21 +257,21 @@ def update_tweet(file_path, tweet_dataFrame_list, tweet_dataFrame_index_list):
                     tweet_body_content_list = tweet_body.split('://twitter.com/')
                     tweet_id_content = [content.split('/status/')[1] for content in tweet_body_content_list if '/status/' in content][0]
                     tweet_id = '00' + tweet_id_content[:18]
-                    tweet_id_index = get_tweet_id_index(tweet_id=tweet_id,tweet_dataFrame_index_list=tweet_dataFrame_index_list)
-                    if tweet_id_index != None:
-                        temp_time = compare_time(origin_time=tweet_dataFrame_list[tweet_id_index].end_time[tweet_id],new_time=row['tweet']['postedTime'],tweet_type= row['type'])
-                        tweet_dataFrame_list[tweet_id_index].loc[[tweet_id],['end_time']] = temp_time
-                        tweet_dataFrame_list[tweet_id_index].loc[[tweet_id],['retweet_count']] += 1
+                    tweet_index = whether_in_dict(str = tweet_id, dictionary=tweet_dataFrame_index_dict)
+                    if tweet_index != None:
+                        temp_time = compare_time(origin_time=tweet_dataFrame_dict[tweet_index].end_time[tweet_id],new_time=row['tweet']['postedTime'])
+                        tweet_dataFrame_dict[tweet_index].loc[[tweet_id],['end_time']] = temp_time
+                        tweet_dataFrame_dict[tweet_index].loc[[tweet_id],['retweet_count']] += 1
                         # print index, 'PROCESSING TWEET... tweet type:', row['type'], 'body has twitter url, and updata "end_time and retweet_count" of tweet:', tweet_id
                     else:
                         # print index,  'PROCESSING TWEET... tweet type:', row['type'], 'body has twitter url, but not in the dataFrmae '
                         pass
 
         data_file.close()
-    return tweet_dataFrame_list
+    return tweet_dataFrame_dict
 
 
-def calculate_lifecycle_for_each_tweet(tweet_dataFrmae_list,tweet_dataFrame_index_list,file_save_to_name,path_save_to):
+def calculate_lifecycle_for_each_tweet(tweet_dataFrame_dict,file_save_to_name,path_save_to):
     """
     calculate lifecycle for each tweet in dataFrame acrooding to end time and start time.
     :param tweet_dataFrmae_list: the list that having all tweet-dataFrame.
@@ -262,27 +281,25 @@ def calculate_lifecycle_for_each_tweet(tweet_dataFrmae_list,tweet_dataFrame_inde
     """
     file_save = open(path_save_to + file_save_to_name, 'wb')
     dataFrame_index = 0
-    for tweet_dataFrmae in tweet_dataFrmae_list:
+    for key in tweet_dataFrame_dict.keys():
         dataFrame_index = dataFrame_index + 1
         print dataFrame_index, ': CALCULATING LIFECYCLE...', dataFrame_index, 'dataFrame is being calculated......'
-        write_log( str(dataFrame_index) + ': CALCULATING LIFECYCLE...   ' + str(dataFrame_index) + ':dataFrame is being calculated......')
-        tweet_dataFrmae['lifecycle'] = 0
-        index = 0
-        for tweet_id in tweet_dataFrmae.index:
-            index += 1
-            start_time = tweet_dataFrmae.start_time[tweet_id]
-            end_time = tweet_dataFrmae.end_time[tweet_id]
-            tweet_dataFrmae.loc[[tweet_id], ['lifecycle']] = time.mktime(time.strptime(end_time,'%Y-%m-%dT%H:%M:%S.000Z')) - time.mktime(time.strptime(start_time,'%Y-%m-%dT%H:%M:%S.000Z'))
-            tweet_dict = dict(tweet_dataFrmae.loc[tweet_id])
-            tweet_dict['file_name'] = get_tweet_id_index(tweet_id=tweet_dict['tweet_id'], tweet_dataFrame_index_list=tweet_dataFrame_index_list)
+        write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information= str(dataFrame_index) + ': CALCULATING LIFECYCLE...   ' + str(dataFrame_index) + ':dataFrame is being calculated......')
+        tweet_dataFrame_dict[key]['lifecycle'] = 0
+        for tweet_id in tweet_dataFrame_dict[key].index:
+            start_time = tweet_dataFrame_dict[key].start_time[tweet_id]
+            end_time = tweet_dataFrame_dict[key].end_time[tweet_id]
+            tweet_dataFrame_dict[key].loc[[tweet_id], ['lifecycle']] = time.mktime(time.strptime(end_time,'%Y-%m-%dT%H:%M:%S.000Z')) - time.mktime(time.strptime(start_time,'%Y-%m-%dT%H:%M:%S.000Z'))
+            tweet_dict = dict(tweet_dataFrame_dict[key].loc[tweet_id])
+            tweet_dict['file_name'] = key
             line = json.dumps(tweet_dict) + '\n'
             # print index, 'CALCULATING LIFECYCLE...', index, 'were calculated and writen to file'
             file_save.write(line)
     file_save.close()
-    return tweet_dataFrmae_list
+    return tweet_dataFrame_dict
 
 
-def merge_tweet_dataFrame(tweet_dataFrame_list):
+def merge_tweet_dataFrame(tweet_dataFrame_dict):
     """
     merge all tweet dataFrame into one dataFrame.
     :param tweet_dataFrame_list: the list that having all tweet-dataFrame.
@@ -290,28 +307,31 @@ def merge_tweet_dataFrame(tweet_dataFrame_list):
     """
     tweet_dataFrame = pd.DataFrame()
     index = 0
-    for dataFrame in tweet_dataFrame_list:
+    for key in tweet_dataFrame_dict.keys():
         index = index + 1
-        print index, 'MERGERING DATAFRAME...',index, 'dataFrame is being merged...'
-        print dataFrame.describe()
-        write_log( str(index) + ': MERGERING DATAFRAME... ' + str(index) +  ' dataFrame is being merged...')
-        tweet_dataFrame = tweet_dataFrame.append(dataFrame)
+        print index, 'MERGERING DATAFRAME...',index, 'dataFrame is being merge...'
+        write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information= str(index) + ': MERGERING DATAFRAME... ' + str(index) +  ' dataFrame is being merge...')
+        tweet_dataFrame = tweet_dataFrame.append(tweet_dataFrame_dict[key])
     return tweet_dataFrame
 
 
-def get_dubai_actor_list(file_name_list, file_path):
+def get_dubai_actor_dict(file_name_list, file_path):
     """
     put all twitter's actors of Dubai into one list, which was used to judge the originTweet whether is a tweet of Dubai.
     :param file_name_list: the list of all file names.
     :param file_path: the path of directory where all files are saved.
     :return: the list of all Dubai's actors.
     """
-    actor_list = []
+    actor_dict = {}
     index = 0
     for file_name in file_name_list:
+        actor_dict[file_name] = list()
+
+    for file_name in file_name_list:
         index = index + 1
-        write_log(str(index) + ': BUILDING actor list of Dubai, file:' + file_name + ' is being processing...')
-        print str(index), ': BUILDING actor list of Dubai, file:' + file_name + ' is being processing...'
+        actor_list = []
+        write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information=str(index) + ': BUILDING actor list of Dubai, file:' + file_name + ' is being processing...')
+        print str(index), ': BUILDING actor dict of Dubai, file:' + file_name + ' is being processing...'
         file = open(file_path + file_name, 'r')
         for line in file:
             row = json.loads(line)
@@ -320,40 +340,24 @@ def get_dubai_actor_list(file_name_list, file_path):
             else:
                 pass
         file.close()
-    return actor_list
+        actor_dict[file_name] = actor_list
+    return actor_dict
 
 
-def get_tweet_id_index(tweet_id, tweet_dataFrame_index_list):
-    """
-    find a certain tweet_id is in which element of the tweet_dataFrame_index_list.
-    :param tweet_id: the certain tweet_id
-    :param tweet_dataFrame_index_list: the list that containing the index of all dataFrame.
-    :return: index: if the tweet_id in the index_list, None:the tweet_id not in the Index_list.
-    """
-    index = 0
-    for list in tweet_dataFrame_index_list:
-        if tweet_id in list:
-            position = index
+
+
+def whether_in_dict(str, dictionary,type_dict = None,):
+    signal = None
+    for key in dictionary.keys():
+        if str in dictionary[key]:
+            signal = key
             break
         else:
-            position = None
-        index = index + 1
-    return position
+            pass
+    return signal
 
 
-def write_log(information):
-    """
-    write the log file that could be used to check the information of process.
-    :param information: the info that needed to be wrote into log file.
-    :return: nothing to return.
-    """
-    log_file = open(os.getcwd().replace('process','') + 'calculate_lifecycle_apart.log', 'a+')
-    temp_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    log_file.write('[' + temp_time + ']' + ': ' + information + '\n')
-    log_file.close()
-
-
-def compare_time(origin_time, new_time,tweet_type):
+def compare_time(origin_time, new_time,tweet_type=None):
     """
     compare old time de new time.
     :param origin_time: the time in dataFrame before updated.
@@ -366,6 +370,12 @@ def compare_time(origin_time, new_time,tweet_type):
         return new_time
     else:
         return origin_time
+
+def get_tweet_dataFrame_index_dict(tweet_dataFrame_dict):
+    tweet_dataFrame_index_dict = {}
+    for key in tweet_dataFrame_dict.keys():
+        tweet_dataFrame_index_dict[key] = list(tweet_dataFrame_dict[key].index)
+    return tweet_dataFrame_index_dict
 
 
 calculate_lifecycle()

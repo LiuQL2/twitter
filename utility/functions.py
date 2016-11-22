@@ -16,22 +16,23 @@ def get_dirlist(path):
     return temp_file_list
 
 
-def pandas_dataFrame_to_file(dataFrame,file_name, file_path):
-    file = open(file_path + file_name, 'wb')
-    for index in dataFrame.index:
-        line_dict = dict(dataFrame.loc[index])
-        line = json.dumps(line_dict) + '\n'
-        file.write(line)
-    file.close()
+def pandas_dataFrame_to_file(operation_type, file_path, dataFrame_dict):
+
+    for key in dataFrame_dict.keys():
+        file_name = key.replace('.json', '.csv')
+        dataFrame_dict[key].to_csv(file_path + operation_type + '/' + file_name)
 
 
-def write_log(log_file, log_file_path, information):
+
+def write_log(log_file_name, log_file_path, information):
     """
     write the log file that could be used to check the information of process.
+    :param log_file_name: the name of log file.
+    :param log_file_path: the path of log file.
     :param information: the info that needed to be wrote into log file.
     :return: nothing to return.
     """
-    log_file = open(log_file_path + log_file, 'a+')
+    log_file = open(log_file_path + log_file_name, 'a+')
     temp_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     log_file.write('[' + temp_time + ']' + ': ' + information + '\n')
     log_file.close()
