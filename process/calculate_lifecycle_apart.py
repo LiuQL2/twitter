@@ -19,11 +19,11 @@ def calculate_lifecycle():
     calculate lifecycle for each tweet.
     :return: Nothing to return.
     """
-    # path_data = 'D:/LiuQL/eHealth/twitter/data_dubai/'
-    # path_save_to = 'D:/LiuQL/eHealth/twitter/'
+    path_data = 'D:/LiuQL/eHealth/twitter/data_dubai/'
+    path_save_to = 'D:/LiuQL/eHealth/twitter/'
     file_save_to_name = 'tweet_lifecycle_apart.json'
-    path_data = '/pegasus/harir/Qianlong/data/data_dubai/'
-    path_save_to = '/pegasus/harir/Qianlong/data/'
+    # path_data = '/pegasus/harir/Qianlong/data/data_dubai/'
+    # path_save_to = '/pegasus/harir/Qianlong/data/'
     # path_data = raw_input('Please input the FILES which contain the data:')
     # path_save_to = raw_input('Please input the path of directory where you want the RESULT FILE saves to:')
     # file_save_to_name = raw_input('Please input the file name that you want the result saved to (eg:result.json):')
