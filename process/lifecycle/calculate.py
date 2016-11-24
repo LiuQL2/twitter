@@ -7,7 +7,8 @@ import time
 import os
 import sys
 import csv
-from utility.functions import write_log
+# from utility.functions import write_log
+from functions import write_log
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -16,8 +17,8 @@ def calculate():
     path_save_to = 'D:/LiuQL/eHealth/twitter/data/data_hash/result/'
     file_save_to = 'life_cycle.csv'
     file_filter_save_to = 'life_cycle_filter.csv'
-    # path_data = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/root_tweet/'
-    # path_save_to = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/root_tweet/'
+    path_data = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/root_tweet/'
+    path_save_to = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/root_tweet/'
     dataFrame_dict = read_csv(data_path=path_data)
     hash_dataFrame_dict = hash_tweet_dataFrame(dataFrame_dict=dataFrame_dict)
     calculate_lifecycle(tweet_dataFrame_dict=hash_dataFrame_dict,file_save_to=file_save_to,file_filter_save_to=file_filter_save_to,path_save_to=path_save_to)
