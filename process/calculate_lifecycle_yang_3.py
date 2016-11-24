@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 按照杨师兄的思路进行，为每一条记录寻找其最原始的root的tweet。
-这个是先将数据进行hash存储，然后按照一条文件作为一个dataFrame中，最终所有的dataFrame放入一个字典中，在查询的时候根据查询对象利用hash，确定该对象在哪一个dataFrame中， 然后在进行查询。
-在为每一条寻找root tweet的时候，是对一块一块里面的记录进行遍历。
+这个是先将数据进行hash存储，然后按照一个文件作为一个dataFrame中，最终所有的dataFrame放入一个字典中，在查询的时候根据查询对象利用hash，确定该对象在哪一个dataFrame中， 然后在进行查询。
+在为每一条寻找root tweet的时候，是对一块一块里面的记录进行遍历。即两层循环。
+另外，文件是分别存储的。速度最快
 """
 
 import pandas as pd
@@ -20,11 +21,10 @@ def calculate_lifecycle():
     write_log(log_file_name='calculate_lifecycle_yang_3.log', log_file_path=os.getcwd(),
               information='############################## start program ################################')
     data_path =  'D:/LiuQL/eHealth/twitter/data/data_hash/'
-    path_save_to =  'D:/LiuQL/eHealth/twitter/data/data_hash/'
-    file_name_save_to = 'tweet_originTweet.csv'
+    path_save_to =  'D:/LiuQL/eHealth/twitter/data/data_hash/result/'
+    file_name_save_to = 'tweet_originTweet_error.csv'
     # data_path = '/pegasus/harir/Qianlong/data/hash/'
-    # path_save_to = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame_2/'
-    file_name_save_to = 'tweet_originTweet.csv'
+    # path_save_to = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/'
     dataFrame_dict = get_all_dataFrame(data_path=data_path)
     print 'tweet_dataFrame has been built.'
     build_tweet(dataFrame_dict=dataFrame_dict,path_save_to=path_save_to, file_name_save_to=file_name_save_to)
@@ -78,8 +78,8 @@ def find_root_tweet(dataFrame_dict, tweet_id,depth):
             origin_tweet_id = None
             origin_tweet_time = None
     except:
-        origin_tweet_id = None
-        origin_tweet_time = None
+        origin_tweet_id = False
+        origin_tweet_time = False
     return origin_tweet_id, origin_tweet_time,depth
 
 
@@ -87,13 +87,20 @@ def build_tweet(dataFrame_dict,path_save_to,file_name_save_to):
     # lifecycle_dataFrame = pd.DataFrame()
     write_log(log_file_name='calculate_lifecycle_yang_3.log', log_file_path=os.getcwd(),information='Finding root tweet for each tweet')
     column = ['tweet_id', 'tweet_time', 'origin_tweet_id', 'origin_tweet_id']
-    file = open(path_save_to + file_name_save_to,'wb')
-    writer = csv.writer(file)
     count = 0
     temp_count = 0
     total_number = 0
     for key in dataFrame_dict.keys():
         total_number = total_number + len(dataFrame_dict[key])
+    file_dict = {}
+    file_list = []
+    for key in dataFrame_dict.keys():
+        file = open(path_save_to + key,'wb')
+        file_dict[key] = csv.writer(file)
+        file_list.append(file)
+    file_error = open(path_save_to + file_name_save_to,'wb')
+    error_writer  = csv.writer(file_error)
+    file_list.append(file_error)
     key_number = 0
     for key in dataFrame_dict.keys():
         key_number = key_number + 1
@@ -103,17 +110,20 @@ def build_tweet(dataFrame_dict,path_save_to,file_name_save_to):
             tweet_time = tweet_dataFrame.tweet_time[index]
             origin_tweet_id, origin_tweet_time,depth= find_root_tweet(dataFrame_dict=dataFrame_dict,tweet_id=tweet_dataFrame.origin_tweet_id[index],depth=0)
             # if origin_tweet_id != None and tweet_id != origin_tweet_id:
-            if origin_tweet_id != None:
+            if origin_tweet_id != None and origin_tweet_id != False:
                 # line = pd.DataFrame(data = [[tweet_id,tweet_time,origin_tweet_id, origin_tweet_time]],index = [index],columns=column)
                 # lifecycle_dataFrame = lifecycle_dataFrame.append(line,ignore_index=False)
-                writer.writerow([tweet_id,tweet_time,origin_tweet_id, origin_tweet_time])
+                file_dict[key].writerow([tweet_id,tweet_time,origin_tweet_id, origin_tweet_time])
                 print 'key_number:',key_number,'number:',count, 'total_number:', total_number, 'depth:',depth, tweet_id,tweet_time,origin_tweet_id, origin_tweet_time
-
+            elif origin_tweet_id == False:
+                error_writer.writerow([tweet_id, tweet_time, origin_tweet_id, origin_tweet_time])
+                print  'key_number:', key_number, 'Error!! number:', count, 'total_number:', total_number, 'depth:', depth, tweet_id, tweet_time, origin_tweet_id, origin_tweet_time
             count += 1
             if count - temp_count >= 10000:
                 write_log(log_file_name='calculate_lifecycle_yang_3.log', log_file_path=os.getcwd(),information='key_number:'+ str(key_number) + 'Finding root tweet, total_number:'+str(total_number)+',finished_number:'+str(count) + '   Finding root tweet for each tweet')
                 temp_count = count
-    file.close()
+    for file in file_list:
+        file.close()
     # lifecycle_dataFrame = lifecycle_dataFrame[lifecycle_dataFrame.tweet_id != lifecycle_dataFrame.origin_tweet_id]
     # lifecycle_dataFrame.to_csv(path_save_to + file_name_save_to.replace('.csv', '_dataFrame.csv'))
 

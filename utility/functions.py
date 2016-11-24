@@ -32,7 +32,7 @@ def write_log(log_file_name, log_file_path, information):
     :param information: the info that needed to be wrote into log file.
     :return: nothing to return.
     """
-    log_file = open(log_file_path + log_file_name, 'a+')
+    log_file = open(log_file_path +'/'+ log_file_name, 'a+')
     temp_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     log_file.write('[' + temp_time + ']' + ': ' + information + '\n')
     log_file.close()
