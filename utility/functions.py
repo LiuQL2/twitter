@@ -7,12 +7,22 @@ import json
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-def get_dirlist(path):
+def get_dirlist(path,key_word_list):
     file_name_list = os.listdir(path)#获得原始json文件所在目录里面的所有文件名称
-    temp_file_list = []
-    for file_name in file_name_list:
-        if 'part-r' in file_name and '.json' in file_name and 'crc' not in file_name:
-            temp_file_list.append(file_name)
+    if key_word_list == None:
+        temp_file_list = file_name_list
+    else:
+        temp_file_list = []
+        for file_name in file_name_list:
+            have_key_words = True
+            for key_word in key_word_list:
+                if key_word not in file_name:
+                    have_key_words = False
+                    break
+                else:
+                    pass
+            if have_key_words == True:
+                temp_file_list.append(file_name)
     return temp_file_list
 
 
@@ -32,6 +42,15 @@ def write_log(log_file_name, log_file_path, information):
     :param information: the info that needed to be wrote into log file.
     :return: nothing to return.
     """
+    if '\\' in log_file_path:
+        path_list = log_file_path.split('\\')
+        temp_log_file_path = path_list.pop(0)
+        for  temp_path in path_list:
+            temp_log_file_path = temp_log_file_path + '/' + temp_path
+    else:
+        temp_log_file_path = log_file_path
+        pass
+    log_file_path = temp_log_file_path
     log_file = open(log_file_path +'/'+ log_file_name, 'a+')
     temp_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     log_file.write('[' + temp_time + ']' + ': ' + information + '\n')

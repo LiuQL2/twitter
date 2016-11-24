@@ -12,7 +12,7 @@ def classify_data():
     path_data = raw_input('Please input the path of directory where the FILES NEEDED to be CLASSIFIED are:')
     path_save_to = raw_input('Please input the path of directory where you want the RESULT FILE saves to:')
     file_save_to = open(path_save_to + 'total_data.json', 'wb')
-    file_name_list = get_dirlist(path=path_data)
+    file_name_list = get_dirlist(path=path_data,key_word_list=['part-', '.json'])
     index = 0
     for file_name in file_name_list:
         index = index + 1

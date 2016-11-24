@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-按照杨师兄的思路进行，为每一条记录寻找其最原始的root的tweet。
+根据格式为['tweet_id', 'origin_tweet_id', 'from_user','from_user_id','to_user','to_user_id', 'tweet_time', 'origin_tweet_time', 'type']的文件，根据tweet_id将文件进行hash存储。
 """
 
 import pandas as pd
@@ -38,7 +38,6 @@ def hash_file():
         reader = csv.reader(file)
         for line in reader:
             index = index + 1
-
             number = hash(line[0]) % 100
             print file_index,index,line
             writer_list[number].writerow(line)

@@ -1,175 +1,181 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+根据生成的（tweet_id, tweet_time, root_tweet_id, root_tweet_time）格式的文件计算每一个origin_tweet的生命周期。并将结果hash之后保存到一百个文件里面。
+包含两种情况，一个是去掉root_tweet是其本身的计算结果，另外一个是全部计算，分别保存到一个文件里面，格式为（tweet_id, lifecycle).
+"""
 
-import numpy as np
 import pandas as pd
-import sys
 import time
-import json
 import os
-from collections import OrderedDict
+import sys
+import csv
+from utility.functions import write_log
+from utility.functions import get_dirlist
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+def calculate():
+    path_data = 'D:/LiuQL/eHealth/twitter/data/data_hash/result/'
+    path_save_to = 'D:/LiuQL/eHealth/twitter/data/data_hash/result/'
+    file_save_to = 'life_cycle.csv'
+    file_filter_save_to = 'life_cycle_filter.csv'
+    #path_data = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/root_tweet/'
+    #path_save_to = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/root_tweet/'
+    dataFrame_dict = read_csv(data_path=path_data)
+    hash_dataFrame_dict = hash_tweet_dataFrame(dataFrame_dict=dataFrame_dict)
+    calculate_lifecycle(tweet_dataFrame_dict=hash_dataFrame_dict,file_save_to=file_save_to,file_filter_save_to=file_filter_save_to,path_save_to=path_save_to)
 
-def calculate_lifecycle():
+    describe_lifecycle(path_save_to=path_save_to,file_save_to=file_save_to,file_filter_save_to=file_filter_save_to)
+
+
+def read_csv(data_path):
     """
-    calculate lifecycle for each tweet.
-    :return: Nothing to return.
+    根据（tweet_id, tweet_time, root_tweet_id, root_tweet_time）格式的文件构建dataFrame_dict，其中字典中每一个dataFrame的名称和文件名称相同，一个文件的数据存储在一个dataFrame中。
+    :param data_path:文件路径
+    :return:构建之后的dataFrame_dict.
     """
-    # path_data = raw_input('Please input the FILES which contain the data:')
-    # path_save_to = raw_input('Please input the path of directory where you want the RESULT FILE saves to:')
-    # file_save_to_name = raw_input('Please input the file name that you want the result saved to (eg:result.json):')
-
-    path_data = 'D:\LiuQL\eHealth\\twitter\\total_data.json'
-    # path_data = 'D:\LiuQL\eHealth\\twitter\\total_data_small.json'
-    path_save_to = 'D:\LiuQL\eHealth\\twitter\\'
-    file_save_to_name = 'tweet_lifecycle.json'
-
-    #calculate lifecycle for each tewwt.
-    start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    print 'the dataFrame of tweet is being building......,,please wait for a moment.'
-    tweet_dataFrame = build_tweet_dataFrame(file_name = path_data)
-    print 'updating the "end time, retweet count, reply count" of each tweet.....,please wait for a moment.'
-    tweet_dataFrame = process_tweet(file_name = path_data, tweet_dataFrame=tweet_dataFrame)
-    print 'claculating the lifecycle of each tweet......,please wait for a moment.'
-    tweet_dataFrame = get_lifecycle(tweet_dataFrame,file_save_to_name=file_save_to_name,path_save_to=path_save_to)
-
-    #output the result.
-    describe_dataFrame = tweet_dataFrame.describe()
-    print '=================================================================\ndescribe of the result'
-    print describe_dataFrame
-    print '=================================================================\nlifecycle > 0:'
-    print tweet_dataFrame[tweet_dataFrame['lifecycle'] > 0]
-    end_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    print '================================================================='
-    print 'start_time:',start_time
-    print 'end_time:',end_time
-    print "total number of tweets:", str(len(tweet_dataFrame.index))
-    print "total number of tweets that been replied:" + str(len(tweet_dataFrame[tweet_dataFrame['reply_count'] > 0].index))
-    print "total number of tweets that been retweeded:" + str(len(tweet_dataFrame[tweet_dataFrame['retweet_count'] > 0].index))
-    print "average reply count:", str(describe_dataFrame.reply_count['mean'])
-    print "average retweet count:", str(describe_dataFrame.retweet_count['mean'])
-    print "average lifecycle of tweets (seconds):", str(describe_dataFrame.lifecycle['mean'])
-    print '================================================================='
-
-    # save the result into file.
-    info_file = open(os.getcwd().replace('process', '') + 'calculate_lifecycle_info.txt', 'wb')
-    info_file.write("start time:" + str(start_time) + '\n')
-    info_file.write("end time:" + str(end_time) + '\n')
-    info_file.write("total number of tweets:" + str(len(tweet_dataFrame.index)) + '\n')
-    info_file.write("total number of tweets that been replied:" + str(len(tweet_dataFrame[tweet_dataFrame['reply_count'] > 0].index)) + '\n')
-    info_file.write("total number of tweets that been retweeded:" + str(len(tweet_dataFrame[tweet_dataFrame['retweet_count'] > 0].index)) + '\n')
-    info_file.write("average reply count:" + str(describe_dataFrame.reply_count['mean']) + '\n')
-    info_file.write("average retweet count:" + str(describe_dataFrame.retweet_count['mean']) + '\n')
-    info_file.write("average lifecycle of tweets:" + str(describe_dataFrame.lifecycle['mean']) + ' seconds\n')
-    info_file.close()
-    print '##############the result has been saved in:',os.getcwd().replace('process', '') + 'calculate_lifecycle_info.txt'
-
-
-def build_tweet_dataFrame(file_name):
-    """
-    build dataFrame of pandas for each tweet, no duplicate records in this dataFrame.
-    :param file_name: The file that contain all the data, path + file_name.
-    :return: dataFram of pandas.
-    """
-    tweet_dataFrame = pd.DataFrame()
-    data_file = open(file_name, 'r')
-    columns = ['tweet_id', 'start_time', 'end_time', 'reply_count', 'retweet_count']
+    file_name_list = get_dirlist(path = data_path, key_word_list=['hash_qianlong'])
+    dataFrame_dict = {}
     index = 0
-    for line in data_file:
-        index = index + 1
-        row = json.loads(line, object_pairs_hook=OrderedDict)
-        # if row['type'] == 'tweet' and row['tweet']['id'] not in tweet_dataFrame.index :
-        if row['type'] == 'tweet':
-            new_line = pd.DataFrame(data = [[row['tweet']['id'], row['tweet']['postedTime'], row['tweet']['postedTime'], 0.0, 0.0]], index=[row['tweet']['id']], columns=columns)
-            tweet_dataFrame = tweet_dataFrame.append(new_line)
-            print index ,'BUILDING DATAFRAME... new row', row['tweet']['id']
-        else:
-            print index, 'BUILDING DATAFRAME... exits in dataFrame'
-            pass
-    data_file.close()
-    return tweet_dataFrame.drop_duplicates()
-
-
-def process_tweet(file_name, tweet_dataFrame):
-    """
-    update the info of each tweet in the dataFrame accroedig to other tweets.
-    :param file_name: the file that contains the infomation that can be used to update records.
-    :param tweet_dataFrame: dataFrame of each tweet.
-    :return: updated dataFrame
-    """
-    data_file = open(file_name, 'r')
-    index = 0
-    for line in data_file:
+    for file_name in file_name_list:
         index += 1
-        row = json.loads(line)
-        tweet_body = row['tweet']['body']
+        # write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information=str(index) + ': Reading file to dataFrame:' + file_name + ' is being reading...')
+        print time.ctime(), str(index) + ': Reading file to dataFrame:' + file_name + ' is being reading...'
+        data = pd.read_csv(data_path + file_name, header = None)
+        data.columns = ['tweet_id', 'tweet_time', 'origin_tweet_id', 'origin_tweet_time']
+        data = data[data.origin_tweet_time != 'null']
 
-        # 'reply' type, update info of tweet that the reply reply to.
-        if row['type'] == 'reply' and "00" + row['tweet']['inReplyTo'] in tweet_dataFrame.index:
-            tweet_dataFrame.loc[["00" + row['tweet']['inReplyTo']],['end_time']] = row['tweet']['postedTime']
-            tweet_dataFrame.loc[["00" + row['tweet']['inReplyTo']],['reply_count']] += 1
-            print index, 'PROCESSING TWEET... tweet type:', row[ 'type'], 'inReplyTo in the dataFrame and update "reply_count and end_time', '00' + row['tweet']['inReplyTo']
+        data['lifecycle'] = data.tweet_time.apply(time_timestamp) - data.origin_tweet_time.apply(time_timestamp)
+        # data =  data[data.lifecycle != 0.0]
 
+        del data['tweet_id']
+        data.columns = ['end_time', 'tweet_id', 'start_time', 'lifecycle']
 
-        # 'tweet' type.
-        # the condition that the user retweet someone's tweet and attached his own words: update info of the tweet that be retweeted if it is included in dataFrame.
-        # the condition that a user posts a new tweet just contains his own origin content: do nothing.
-        elif row['type'] == 'tweet' and  '://twitter.com/' in tweet_body and '/status/' in tweet_body:
-            tweet_body_content_list = tweet_body.split('://twitter.com/')
-            tweet_id_content = [content.split('/status/')[1] for content in tweet_body_content_list if '/status/' in content][0]
-            tweet_id = '00' + tweet_id_content[:18]
-            if tweet_id in tweet_dataFrame.index:
-                tweet_dataFrame.loc[[tweet_id],['end_time']] = row['tweet']['postedTime']
-                tweet_dataFrame.loc[[tweet_id],['retweet_count']] += 1
-                print index, 'PROCESSING TWEET... tweet type:', row['type'], 'update "end_time and retweet_count" of tweet:', tweet_id
-            else:
-                print index , 'PROCESSING TWEET... tweet type:', row['type'], 'tweet:', tweet_id,'not in the dataFrame'
-        # 'retwet' type
-        elif row['type'] == 'retweet':
-            origin_tweet_id = row['originTweet']['id']
-            if origin_tweet_id in tweet_dataFrame.index:
-                tweet_dataFrame.loc[[origin_tweet_id],['end_time']] = row['tweet']['postedTime']
-                tweet_dataFrame.loc[[origin_tweet_id],['retweet_count']] += 1
-                print index, 'PROCESSING TWEET... tweet type:', row['type'], 'originweet in the dataFrame and update "end_time and retweet_count" of tweet:', tweet_id
-            else:
-                print index , 'PROCESSING TWEET... tweet type:', row['type'], 'originTweet not in the dataFrame'
-            if '://twitter.com/' in tweet_body and '/status/' in tweet_body:
-                tweet_body_content_list = tweet_body.split('://twitter.com/')
-                tweet_id_content = [content.split('/status/')[1] for content in tweet_body_content_list if '/status/' in content][0]
-                tweet_id = '00' + tweet_id_content[:18]
-                if tweet_id in tweet_dataFrame.index:
-                    tweet_dataFrame.loc[[tweet_id],['end_time']] = row['tweet']['postedTime']
-                    tweet_dataFrame.loc[[tweet_id],['retweet_count']] += 1
-                    print index, 'PROCESSING TWEET... tweet type:', row['type'], 'body has twitter url, and updata "end_time and retweet_count" of tweet:', tweet_id
-                else:
-                    print index,  'PROCESSING TWEET... tweet type:', row['type'], 'body has twitter url, but not in the dataFrmae '
+        # print data
+        data = data.drop_duplicates()
+        dataFrame_dict[file_name] = data
+    # write_log(log_file_name='calculate_lifecycle.log', log_file_path=os.getcwd(),information='tweet_dataFrame has been built, total number:')
 
-    data_file.close()
-    return tweet_dataFrame
+    return dataFrame_dict
 
 
-def get_lifecycle(tweet_dataFrmae,file_save_to_name,path_save_to):
+def hash_tweet_dataFrame(dataFrame_dict):
     """
-    calculate lifecycle for each tweet in dataFrame acrooding to end time and start time.
-    :param tweet_dataFrmae: dataFrame
-    :param file_save_to_name: the file that result of each tweet that saved to.
-    :param path_save_to: the path of the file_save_to_name
-    :return: updated tweet_dataFrame
+    根据每一条记录的origin_tweet_id将所有的tweet重新hash一下，这样就能保证一个相同的origin_tweet都放在一个dataFrame中，不用在进行夸dataFrame查找。
+    :param dataFrame_dict:原始按照文件存储的dataFrame。
+    :return:hash之后的dataFrame。
     """
-    file_save = open(path_save_to + file_save_to_name, 'wb')
-    tweet_dataFrmae['lifecycle'] = 0
-    index = 0
-    for tweet_id in tweet_dataFrmae.index:
-        index += 1
-        start_time = tweet_dataFrmae.start_time[tweet_id]
-        end_time = tweet_dataFrmae.end_time[tweet_id]
-        tweet_dataFrmae.loc[[tweet_id], ['lifecycle']] = time.mktime(time.strptime(end_time,'%Y-%m-%dT%H:%M:%S.000Z')) - time.mktime(time.strptime(start_time,'%Y-%m-%dT%H:%M:%S.000Z'))
-        line = json.dumps(dict(tweet_dataFrmae.loc[tweet_id])) + '\n'
-        print index, 'CALCULATING LIFECYCLE...', index, 'were calculated and writen to file'
-        file_save.write(line)
-    file_save.close()
-    return tweet_dataFrmae
+    tweet_hash_dict = {}
+    for index in range(0,100,1):
+        tweet_hash_dict['hash_dataFrame_' + str(index)] = pd.DataFrame()
+    key_index = 0
+    for key in dataFrame_dict.keys():
+        key_index = key_index + 1
+        print time.ctime(), str(key_index) + ': hashing tweet dataFrame:' + key + ' is being reading...'
+        # write_log(log_file_name='calculate_lifecycle.log', log_file_path=os.getcwd(),information= str(key_index) + ': hashing tweet dataFrame:' + key + ' is being reading...')
+        id_list = set(list(dataFrame_dict[key].tweet_id))
+        for tweet_id in id_list:
+            hash_number = hash(str(tweet_id)) % 100
+            tweet_hash_dict['hash_dataFrame_' + str(hash_number)] = tweet_hash_dict['hash_dataFrame_' + str(hash_number)].append(dataFrame_dict[key][dataFrame_dict[key].tweet_id == tweet_id],ignore_index=False)
 
-calculate_lifecycle()
+    for key in tweet_hash_dict.keys():
+        tweet_hash_dict[key] = tweet_hash_dict[key].drop_duplicates()
+    return tweet_hash_dict
+
+
+def time_timestamp(tweet_time):
+    """
+    将时间日期格式为'%Y-%m-%d %H:%M:%S'的和时间戳格式相互转化。
+    :param tweet_time:时间
+    :return:转化之后的时间格式
+    """
+    if type(tweet_time) == str:
+        temp_time = time.mktime(time.strptime(tweet_time, '%Y-%m-%d %H:%M:%S'))
+        # print temp_time,type(temp_time)
+    elif type(tweet_time) == float:
+        temp_time = time.localtime(tweet_time)
+        temp_time = time.strftime('%Y-%m-%d %H:%M:%S', temp_time)
+        # print temp_time
+    return temp_time
+
+
+def calculate_lifecycle(tweet_dataFrame_dict,file_save_to,file_filter_save_to, path_save_to):
+    """
+    为每一个tweet寻找其生命周期的最大值。
+    :param tweet_dataFrame_dict:hash之后的dataFrame_dict.
+    :param file_save_to:不过滤数据的保存文件名称
+    :param file_filter_save_to:将生命为0的tweet去掉之后保存的位置。
+    :param path_save_to:以上两个文件保存的路径
+    :return:Nothing to return.
+    """
+    file_all = open(path_save_to + file_save_to,'wb')
+    file_filter = open(path_save_to + file_filter_save_to,'wb')
+    all_writer = csv.writer(file_all)
+    filter_writer = csv.writer(file_filter)
+    key_index = 0
+    for key in tweet_dataFrame_dict.keys():
+        key_index = key_index + 1
+        id_list = set(list(tweet_dataFrame_dict[key].tweet_id))
+        for tweet_id in id_list:
+            lifecycle = max(list(tweet_dataFrame_dict[key][tweet_dataFrame_dict[key].tweet_id == tweet_id].lifecycle))
+            all_writer.writerow([tweet_id, lifecycle])
+            if float(lifecycle) != 0.0:
+                filter_writer.writerow([tweet_id, lifecycle])
+            print 'key_number:',  key_index, 'calculating lifecycle,', tweet_id, lifecycle
+
+    file_all.close()
+    file_filter.close()
+
+
+def describe_lifecycle(path_save_to, file_save_to, file_filter_save_to):
+    """
+    根据保存为（tweet_id, lifecycle)格式的文件进行求平均生命周期。必须所有需要求生命周期的推文放在一个文件中。并且将结果保存到一个文件中。
+    :param path_save_to:保存结果的位置
+    :param file_save_to:（tweet_id, lifecycle)格式的文件，包含生命为0 的数据
+    :param file_filter_save_to:（tweet_id, lifecycle)格式的文件，不包含生命为0的数据。
+    :return:nothing to return.
+    """
+    all_tweet = pd.read_csv(path_save_to + file_save_to, header=None,iterator=True)
+    filter_tweet = pd.read_csv(path_save_to + file_filter_save_to, header=None,iterator=True)
+    chunk_size = 10000
+    chunks = []
+    loop = True
+    while loop:
+        try:
+            chunk = all_tweet.get_chunk(chunk_size)
+            chunks.append(chunk)
+        except StopIteration:
+            loop = False
+            print "Iteration is stopped."
+    all_tweet_data = pd.concat(chunks, ignore_index=True)
+    all_tweet_data.columns =['tweet_id', 'lifecycle']
+
+
+    loop = True
+    chunks = []
+    while loop:
+        try:
+            chunk = filter_tweet.get_chunk(chunk_size)
+            chunks.append(chunk)
+        except StopIteration:
+            loop = False
+            print "Iteration is stopped."
+    filter_tweet_data = pd.concat(chunks, ignore_index=True)
+    filter_tweet_data.columns =['tweet_id', 'lifecycle']
+
+
+    all_describe = all_tweet_data.describe()
+    filter_describe = filter_tweet_data.describe()
+
+    all_describe.to_csv(path_save_to + 'all_describe.csv')
+    filter_describe.to_csv(path_save_to + 'filter_describe.csv')
+    print 'all describe\n',all_describe
+    print 'filter describer\n', filter_describe
+
+
+
+# time_timestamp('2015-01-20 23:23:34')
+# time_timestamp(1421767414.0)
+
+calculate()
