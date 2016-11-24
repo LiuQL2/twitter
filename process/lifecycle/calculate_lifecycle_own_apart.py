@@ -32,20 +32,20 @@ def calculate_lifecycle():
     # path_save_to = raw_input('Please input the path of directory where you want the RESULT FILE saves to:')
     # file_save_to_name = raw_input('Please input the file name that you want the result saved to (eg:result.json):')
 
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information='########################resatrt the program of Claculating lifecycle.########################')
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information='########################resatrt the program of Claculating lifecycle.########################')
 
     #calculate lifecycle for each tewwt.
     start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     print 'the dataFrame of tweet is being building......,,please wait for a moment.'
     tweet_dataFrame_dict, actor_number = build_tweet_dataFrame_dict(file_path=path_data)
 
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information='tweet_dataFrame_dict is being saving to file.')
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information='tweet_dataFrame_dict is being saving to file.')
     pandas_dataFrame_to_file(operation_type='tweet_dataFrame',file_path=path_save_to,dataFrame_dict=tweet_dataFrame_dict)
 
     print 'updating the "end time, retweet count, reply count" of each tweet.....,please wait for a moment.'
     tweet_dataFrame_dict = update_tweet(file_path=path_data, tweet_dataFrame_dict=tweet_dataFrame_dict)
 
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information='updated tweet_dataFrame_dict is being saving to file')
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information='updated tweet_dataFrame_dict is being saving to file')
     pandas_dataFrame_to_file(operation_type='updated_tweet_dataFrame', file_path=path_save_to,dataFrame_dict=tweet_dataFrame_dict)
 
     print 'claculating the lifecycle of each tweet......,please wait for a moment.'
@@ -88,19 +88,19 @@ def calculate_lifecycle():
     info_file.close()
 
     # write the result into log file.
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="start time:" + str(start_time))
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="end time:" + str(end_time))
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="total number of tweets:" + str(len(tweet_dataFrame.index)))
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="total number of Dubai's actor:" + str(actor_number))
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="total number of tweets that been replied:" + str(len(tweet_dataFrame[tweet_dataFrame['reply_count'] > 0].index)))
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="total number of tweets that been retweeded:" + str(len(tweet_dataFrame[tweet_dataFrame['retweet_count'] > 0].index)))
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="average reply count:" + str(describe_dataFrame.reply_count['mean']))
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="average retweet count:" + str(describe_dataFrame.retweet_count['mean']) )
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information="average lifecycle of tweets:" + str(describe_dataFrame.lifecycle['mean']) + ' seconds')
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information="start time:" + str(start_time))
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information="end time:" + str(end_time))
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information="total number of tweets:" + str(len(tweet_dataFrame.index)))
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information="total number of Dubai's actor:" + str(actor_number))
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information="total number of tweets that been replied:" + str(len(tweet_dataFrame[tweet_dataFrame['reply_count'] > 0].index)))
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information="total number of tweets that been retweeded:" + str(len(tweet_dataFrame[tweet_dataFrame['retweet_count'] > 0].index)))
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information="average reply count:" + str(describe_dataFrame.reply_count['mean']))
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information="average retweet count:" + str(describe_dataFrame.retweet_count['mean']) )
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information="average lifecycle of tweets:" + str(describe_dataFrame.lifecycle['mean']) + ' seconds')
 
     print '##############the result has been saved in:',os.getcwd().replace('process', '') + 'calculate_lifecycle_info_apart.txt'
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information='The result has been saved in:' + os.getcwd().replace('process', '') + 'calculate_lifecycle_info_apart.txt')
-    write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information='************************ Successfully calculated the lifecycle for tweet.*********************\n' + '*' * 100 + '\n' + '*' * 100 + '\n' + '*' * 100 + '\n\n')
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information='The result has been saved in:' + os.getcwd().replace('process', '') + 'calculate_lifecycle_info_apart.txt')
+    write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information='************************ Successfully calculated the lifecycle for tweet.*********************\n' + '*' * 100 + '\n' + '*' * 100 + '\n' + '*' * 100 + '\n\n')
 
 
 def build_tweet_dataFrame_dict(file_path):
@@ -119,7 +119,7 @@ def build_tweet_dataFrame_dict(file_path):
     for file_name in file_name_list:
         index = index + 1
         print index,': BUILDING TWEET DATAFRAME according to file:',index, file_name
-        write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information=str(index) + ': BUILDING TWEET DATAFRAME according to file: ' + str(file_name))
+        write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information=str(index) + ': BUILDING TWEET DATAFRAME according to file: ' + str(file_name))
         tweet_dataFrame = build_tweet_dataFrame(file_name=file_name, file_path = file_path)
         tweet_dataFrame_dict[file_name] = tweet_dataFrame
 
@@ -170,7 +170,7 @@ def add_origin_tweet_to_dataFrame(file_name_list, file_path, tweet_dataFrame_dic
     columns = ['tweet_id', 'start_time', 'end_time', 'reply_count', 'retweet_count']
     for file_name in file_name_list:
         index = index + 1
-        write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information=str(index) + ': Adding originTweet to tweet_dataFrame file:' + file_name + ' is being processing...')
+        write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information=str(index) + ': Adding originTweet to tweet_dataFrame file:' + file_name + ' is being processing...')
         print str(index), ': Adding originTweet to tweet_dataFrame file:' + file_name + ' is being processing...'
         file = open(file_path + file_name, 'r')
 
@@ -205,7 +205,7 @@ def update_tweet(file_path, tweet_dataFrame_dict):
     for file_name in file_name_list:
         file_index = file_index + 1
         print file_index, 'UPDATING INFO OF TWEET...',file_name, 'is processing......'
-        write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information=str(file_index) + ': UPDATING INFO OF TWEET...' + str(file_name) +  'is being processed......')
+        write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information=str(file_index) + ': UPDATING INFO OF TWEET...' + str(file_name) +  'is being processed......')
         data_file = open(file_path + file_name, 'r')
         index = 0
         for line in data_file:
@@ -284,7 +284,7 @@ def calculate_lifecycle_for_each_tweet(tweet_dataFrame_dict,file_save_to_name,pa
     for key in tweet_dataFrame_dict.keys():
         dataFrame_index = dataFrame_index + 1
         print dataFrame_index, ': CALCULATING LIFECYCLE...', dataFrame_index, 'dataFrame is being calculated......'
-        write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information= str(dataFrame_index) + ': CALCULATING LIFECYCLE...   ' + str(dataFrame_index) + ':dataFrame is being calculated......')
+        write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information= str(dataFrame_index) + ': CALCULATING LIFECYCLE...   ' + str(dataFrame_index) + ':dataFrame is being calculated......')
         tweet_dataFrame_dict[key]['lifecycle'] = 0
         for tweet_id in tweet_dataFrame_dict[key].index:
             start_time = tweet_dataFrame_dict[key].start_time[tweet_id]
@@ -310,7 +310,7 @@ def merge_tweet_dataFrame(tweet_dataFrame_dict):
     for key in tweet_dataFrame_dict.keys():
         index = index + 1
         print index, 'MERGERING DATAFRAME...',index, 'dataFrame is being merge...'
-        write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information= str(index) + ': MERGERING DATAFRAME... ' + str(index) +  ' dataFrame is being merge...')
+        write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information= str(index) + ': MERGERING DATAFRAME... ' + str(index) +  ' dataFrame is being merge...')
         tweet_dataFrame = tweet_dataFrame.append(tweet_dataFrame_dict[key])
     return tweet_dataFrame
 
@@ -330,7 +330,7 @@ def get_dubai_actor_dict(file_name_list, file_path):
     for file_name in file_name_list:
         index = index + 1
         actor_list = []
-        write_log(log_file_name='calculate_lifecycle.log',log_file_path=os.getcwd().replace('process',''),information=str(index) + ': BUILDING actor list of Dubai, file:' + file_name + ' is being processing...')
+        write_log(log_file_name='calculate_lifecycle_own_apart.log',log_file_path=os.getcwd(),information=str(index) + ': BUILDING actor list of Dubai, file:' + file_name + ' is being processing...')
         print str(index), ': BUILDING actor dict of Dubai, file:' + file_name + ' is being processing...'
         file = open(file_path + file_name, 'r')
         for line in file:

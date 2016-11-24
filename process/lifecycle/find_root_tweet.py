@@ -25,6 +25,7 @@ def calculate_lifecycle():
               information='############################## start program ################################')
     data_path =  'D:/LiuQL/eHealth/twitter/data/data_hash/'
     path_save_to =  'D:/LiuQL/eHealth/twitter/data/data_hash/result/'
+    path_save_to =  'D:/LiuQL/eHealth/twitter/data/'
     file_name_save_to = 'tweet_originTweet_error.csv'
     # data_path = '/pegasus/harir/Qianlong/data/hash/'
     # path_save_to = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/'
@@ -46,7 +47,7 @@ def get_all_dataFrame(data_path):
     index = 0
     for file_name in file_name_list:
         index += 1
-        write_log(log_file_name='find_root_tweet.log',log_file_path=os.getcwd().replace('process',''),information=str(index) + ': Reading file to dataFrame:' + file_name + ' is being reading...')
+        write_log(log_file_name='find_root_tweet.log',log_file_path=os.getcwd(),information=str(index) + ': Reading file to dataFrame:' + file_name + ' is being reading...')
         print time.ctime(), str(index) + ': Reading file to dataFrame:' + file_name + ' is being reading...'
         data = pd.read_csv(data_path + file_name, header = None)
         data.columns = ['tweet_id', 'origin_tweet_id', 'from_user','from_user_id','to_user','to_user_id', 'tweet_time', 'origin_tweet_time', 'type']
