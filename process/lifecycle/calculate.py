@@ -16,28 +16,14 @@ def calculate():
     path_save_to = 'D:/LiuQL/eHealth/twitter/data/data_hash/result/'
     file_save_to = 'life_cycle.csv'
     file_filter_save_to = 'life_cycle_filter.csv'
-    # path_data = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/'
-    # path_save_to = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/'
-    # path_data = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/'
+    # path_data = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/root_tweet/'
+    # path_save_to = '/pegasus/harir/Qianlong/data/project_data/twitter_hash_dataFrame/root_tweet/'
     dataFrame_dict = read_csv(data_path=path_data)
     hash_dataFrame_dict = hash_tweet_dataFrame(dataFrame_dict=dataFrame_dict)
     calculate_lifecycle(tweet_dataFrame_dict=hash_dataFrame_dict,file_save_to=file_save_to,file_filter_save_to=file_filter_save_to,path_save_to=path_save_to)
 
+    describe_lifecycle(path_save_to=path_save_to,file_save_to=file_save_to,file_filter_save_to=file_filter_save_to)
 
-    all_tweet_data = pd.read_csv(path_save_to + file_save_to, header=None)
-    filter_tweet_data = pd.read_csv(path_save_to + file_filter_save_to, header=None)
-    all_describe = all_tweet_data.describe()
-    filter_describe = filter_tweet_data.describe()
-
-    all_describe.to_csv(path_save_to + 'all_describe.csv')
-    filter_describe.to_csv(path_save_to + 'filter_describe.csv')
-    print 'all describe\n',all_describe
-    print 'filter describer\n', filter_describe
-
-    for key in hash_dataFrame_dict.keys():
-        # if len(hash_dataFrame_dict[key]) == 0:
-        #     print 0
-        print len(hash_dataFrame_dict[key])
 
 def read_csv(data_path):
     name_list = os.listdir(data_path)
@@ -117,6 +103,46 @@ def calculate_lifecycle(tweet_dataFrame_dict,file_save_to,file_filter_save_to, p
 
     file_all.close()
     file_filter.close()
+
+
+def describe_lifecycle(path_save_to, file_save_to, file_filter_save_to):
+
+    all_tweet = pd.read_csv(path_save_to + file_save_to, header=None,iterator=True)
+    filter_tweet = pd.read_csv(path_save_to + file_filter_save_to, header=None,iterator=True)
+    chunk_size = 10000
+    chunks = []
+    loop = True
+    while loop:
+        try:
+            chunk = all_tweet.get_chunk(chunk_size)
+            chunks.append(chunk)
+        except StopIteration:
+            loop = False
+            print "Iteration is stopped."
+    all_tweet_data = pd.concat(chunks, ignore_index=True)
+    all_tweet_data.columns =['tweet_id', 'lifecycle']
+
+
+    loop = True
+    chunks = []
+    while loop:
+        try:
+            chunk = filter_tweet.get_chunk(chunk_size)
+            chunks.append(chunk)
+        except StopIteration:
+            loop = False
+            print "Iteration is stopped."
+    filter_tweet_data = pd.concat(chunks, ignore_index=True)
+    filter_tweet_data.columns =['tweet_id', 'lifecycle']
+
+
+    all_describe = all_tweet_data.describe()
+    filter_describe = filter_tweet_data.describe()
+
+    all_describe.to_csv(path_save_to + 'all_describe.csv')
+    filter_describe.to_csv(path_save_to + 'filter_describe.csv')
+    print 'all describe\n',all_describe
+    print 'filter describer\n', filter_describe
 
 
 
