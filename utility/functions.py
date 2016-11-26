@@ -55,3 +55,40 @@ def write_log(log_file_name, log_file_path, information):
     temp_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     log_file.write('[' + temp_time + ']' + ': ' + information + '\n')
     log_file.close()
+
+
+def read_csv_as_dataFrame_by_chunk(path, file_name,chunk_size = 10000, header = None,sep = ','):
+    import pandas as pd
+    if header == None:
+        data = pd.read_csv(path + file_name, sep = sep,header=None, iterator=True)
+    else:
+        data = pd.read_csv(path + file_name, sep = sep,iterator=True)
+    chunks = []
+    loop = True
+    while loop:
+        try:
+            chunk = data.get_chunk(chunk_size)
+            chunks.append(chunk)
+        except StopIteration:
+            loop = False
+            print "Iteration is stopped."
+    dataFrame = pd.concat(chunks, ignore_index=True)
+    return dataFrame
+
+
+
+def time_timestamp(tweet_time):
+    """
+    将时间日期格式为'%Y-%m-%d %H:%M:%S'的和时间戳格式相互转化。
+    :param tweet_time:时间
+    :return:转化之后的时间格式
+    """
+    import time
+    if type(tweet_time) == str:
+        temp_time = time.mktime(time.strptime(tweet_time, '%Y-%m-%d %H:%M:%S'))
+        # print temp_time,type(temp_time)
+    elif type(tweet_time) == float:
+        temp_time = time.localtime(tweet_time)
+        temp_time = time.strftime('%Y-%m-%d %H:%M:%S', temp_time)
+        # print temp_time
+    return temp_time
