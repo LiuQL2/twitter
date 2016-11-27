@@ -83,14 +83,14 @@ def check_community_edges(source, target, hash_node_dataFrame,hash_size,column_n
 
 
 def main(path, node_file, edge_file,verified_user_file):
-    community_size = 5
+    community_size = 2000
     community_nodes_dataFrame = get_community_nodes(path = path,file_name = node_file,community_size=community_size,sep = ' ',names=['user_id','community'])
-    community_nodes_dataFrame = filter_verified_user(path = path,community_user_dataFrame=community_nodes_dataFrame,verified_user_file=verified_user_file)
+    # community_nodes_dataFrame = filter_verified_user(path = path,community_user_dataFrame=community_nodes_dataFrame,verified_user_file=verified_user_file)
     hash_node_dataFrame_dict = hash_dataFrame(dataFrame=community_nodes_dataFrame,column='user_id', hash_size = 100)
     community_edges_dataFrame =get_community_edges(path = path,edge_file = edge_file,hash_node_dataFrame=hash_node_dataFrame_dict)
-    community_nodes_dataFrame.to_csv(path + 'community_nodes'+ str(community_size) + '.csv',index = False, header=False)
+    community_nodes_dataFrame.to_csv(path + 'community_nodes_contain_verified_'+ str(community_size) + '.csv',index = False, header=False)
     # community_nodes_dataFrame.to_csv(path + 'community_nodes.csv',index = False, header=False)
-    community_edges_dataFrame.to_csv(path + 'community_edges'+ str(community_size) + '.csv',index = False, header=False)
+    community_edges_dataFrame.to_csv(path + 'community_edges_contain_verified_'+ str(community_size) + '.csv',index = False, header=False)
     # community_edges_dataFrame.to_csv(path + 'community_edges.csv',index = False, header=False)
 
 
