@@ -32,8 +32,21 @@ def calculate_degree(path, edge_file, node_file, column_name, sep = ',',header =
         node_dataFrame.loc[[user_id],['out_degree']] = out_degree
         node_dataFrame.loc[[user_id],['in_degree']] = in_degree
         node_dataFrame.loc[[user_id],['degree']] = in_degree + out_degree
+    return node_dataFrame
 
 def label_nodes(node_dataFrame, top_node_size, path, label_file):
+    node_dataFrame['label'] = None
+    id_label_dataFrame = pd.read_csv(path + label_file, names = ['id','is_verified','label'],header = None, dtype = {'id':np.str})
+    id_label_dataFrame.index = id_label_dataFrame.id
+    community_id_list = set(list(node_dataFrame.community))
+    node_dataFrame.index = node_dataFrame.id
+    for community_id in community_id_list:
+        print 'community id:', community_id, 'is being label...'
+        community_node_dataFrame = (node_dataFrame[node_dataFrame.community == community_id]).sort(['degree'], ascending = [0])
+        top_id_list = list(community_node_dataFrame.id)[0:top_node_size]
+        for id in top_id_list:
+            node_dataFrame.loc[[id],['label']] = id_label_dataFrame.label[id]
+    return node_dataFrame
 
 
 
@@ -49,5 +62,11 @@ def build_id_label(path, id_label_name_file, save_file):
         print id, label
     label_file.close()
 
+
+def main():
+    path = ''
+    edge_file = ''
+    node_file = ''
+    node_dataFrame = calculate_degree(path = path,edge_file=edge_file,node_file=node_file,)
 
 build_id_label(path='D:/LiuQL/eHealth/twitter/visualization/', id_label_name_file= 'idname.txt', save_file='id_label.csv')
