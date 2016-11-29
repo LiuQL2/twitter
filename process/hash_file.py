@@ -45,5 +45,36 @@ def hash_file():
     for file in file_list:
         file.close()
 
+def hash_edge_file(path, edge_file_name, path_save_to,hash_size):
+    edge_file = open(path + edge_file_name,'r')
+    reader = csv.reader(edge_file)
+    head = reader.next()
+    file_list = []
+    file_list.append(edge_file)
+    writer_dict = {}
+    for index in range(0, hash_size, 1):
+        file = open(path_save_to + 'edge_hash_' +  str(index) + '.csv' , 'wb')
+        writer_dict[index] = csv.writer(file)
+        writer_dict[index].writerow(head)
+        file_list.append(file)
 
-hash_file()
+    for line in reader:
+        hash_number = hash(str(line[0])) % hash_size
+        writer_dict[hash_number].writerow(line)
+
+    for file in file_list:
+        file.close()
+
+
+# hash_file()
+hash_edge_file(path= '/pegasus/harir/Qianlong/data/network/',
+               edge_file_name='total_edge_degree.csv',
+               path_save_to='/pegasus/harir/Qianlong/data/network/edge_hash/',
+               hash_size=100)
+
+# hash_edge_file(path= 'D:/test/',
+#                edge_file_name='community_edges_2000.csv',
+#                path_save_to='D:/test/edge_hash/',
+#                hash_size=100)
+
+
