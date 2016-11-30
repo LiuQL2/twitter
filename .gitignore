@@ -4,6 +4,13 @@
 **/*.py[cod]
 **/*.log
 **/*.txt
+**/*.png
+**/*.jpg
+
+
+!process/word_cloud/**/*.png
+!process/word_cloud/**/*.jpg
+!process/word_cloud/**/*.txt
 build/
 dist/
 
