@@ -1,3 +1,4 @@
-This project contain "word_cloud", which copyright belongs to  MIT, but contains DroidSansMono.ttf. "word_cloud" comes from "https://github.com/amueller/word_cloud". And thanks amueller for sharing!
+This project contains "word_cloud", which copyright belongs to  MIT, but contains DroidSansMono.ttf, a true type font by Google, that is apache licensed. 
+ "word_cloud" comes from "https://github.com/amueller/word_cloud". And thanks amueller for sharing!
 
 The project is build for "Find potential leaders of different communities using Twitter data".
