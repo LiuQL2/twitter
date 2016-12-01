@@ -27,7 +27,7 @@ sys.setdefaultencoding('utf-8')
 
 
 class cohesionThread (threading.Thread):
-    def __init__(self,edge_dataFrame,node_dataFrame, community_id, number_of_edges ,cohesion_type):
+    def __init__(self,edge_dataFrame,node_dataFrame, community_id, lock, number_of_edges ,cohesion_type):
         threading.Thread.__init__(self)
         self.edge_dataFrame = edge_dataFrame
         self.node_dataFrame = node_dataFrame
@@ -36,6 +36,7 @@ class cohesionThread (threading.Thread):
         self.number_i_j = 0
         self.number_i_j_edge = 0
         self.cohesion = 0.0
+        self.lock = lock
         self.cohesion_type = cohesion_type
     
     def run(self):
@@ -62,11 +63,13 @@ class cohesionThread (threading.Thread):
                         print 'node i out_degree:',node_i_out_degree, '; node j in_degree:', node_j_in_degree, '; wether exits edge:',wether_edge,': number_i_j_edge:', self.number_i_j_edge,'; number_i_j:', self.number_i_j
                     if self.number_i_j - temp_number_i_j >= 100000:
                         temp_number_i_j = self.number_i_j
-                        write_log(log_file_name='network_cohesion_thread.log',log_file_path=os.getcwd(),information='Calculating cohesion. Cohesion:'+ str(self.cohesion) + '; community_id:' + str(self.community_id) + ' Number_i_j:' + str(self.number_i_j) )
+                        write_log(log_file_name='network_cohesion_whole_thread.log',log_file_path=os.getcwd(),information='Calculating cohesion. Cohesion:'+ str(self.cohesion) + '; community_id:' + str(self.community_id) + ' Number_i_j:' + str(self.number_i_j) )
                 else:
                     pass
-        write_log(log_file_name='network_cohesion_thread.log', log_file_path=os.getcwd(),
+        self.lock.acquire()
+        write_log(log_file_name='network_cohesion_whole_thread.log', log_file_path=os.getcwd(),
                   information='################ Community_id: ' + str(self.community_id) + ' is over. cohesion is: ' + str(self.cohesion) + '#####################')
+        self.lock.release()
 
 
     def wether_interaction_between_nodes(self,node_i, node_j, edge_dataFrame_idct, cohesion_type, hash_size=100):
@@ -129,10 +132,11 @@ def calculate_cohesion_whole_network(file_path,node_file_name,cohesion_type,edge
     community_id_list = list(set(list(node_dataFrame.community_id)))
     print 'number 0f community:',len(community_id_list)
     time.sleep(10)
+    lock = threading.Lock()
     thread_list = []
     for community_id in community_id_list:
         community_node_dataFrame = node_dataFrame[node_dataFrame.community_id == community_id]
-        thread = cohesionThread(edge_dataFrame=edge_dataFrame_dict,node_dataFrame=community_node_dataFrame,community_id=community_id,number_of_edges=number_of_edges,cohesion_type=cohesion_type)
+        thread = cohesionThread(edge_dataFrame=edge_dataFrame_dict,node_dataFrame=community_node_dataFrame,lock = lock,community_id=community_id,number_of_edges=number_of_edges,cohesion_type=cohesion_type)
         thread.start()
         thread_list.append(thread)
 
@@ -168,21 +172,21 @@ def main():
     # edge_file_path = '/pegasus/harir/Qianlong/data/network/edge_hash/'
     # edge_file_key_word_list = ['edge_hash_','.csv']
 
-    write_log(log_file_name='network_cohesion_thread.log', log_file_path=os.getcwd(),
+    write_log(log_file_name='network_cohesion_whole_thread.log', log_file_path=os.getcwd(),
               information='*' * 50 + 'Starting Calculate cohesion' + '*' * 50 )
 
     #whole
     info_dict = calculate_cohesion_whole_network(file_path = file_path, node_file_name = node_file_name, cohesion_type = cohesion_type, edge_file_name=None, edge_file_path=edge_file_path,edge_file_key_word_list=edge_file_key_word_list)
     #community
     # info_dict = calculate_cohesion_whole_network(file_path = file_path, node_file_name = node_file_name, cohesion_type = 'community', edge_file_name=edge_file_name, edge_file_path=None,edge_file_key_word_list=None)
-    write_log(log_file_name='network_cohesion_thread.log', log_file_path=os.getcwd(),
+    write_log(log_file_name='network_cohesion_whole_thread.log', log_file_path=os.getcwd(),
               information=str(info_dict))
     cohesion_file = open(os.getcwd() + '/cohesion_info_thread.json','wb')
     row = json.dumps(info_dict) + '\n'
     cohesion_file.write(row)
     cohesion_file.close()
     print info_dict
-    write_log(log_file_name='network_cohesion_thread.log', log_file_path=os.getcwd(),information='*' * 20 + 'Program Done' + '*' * 20 + '\n' * 4)
+    write_log(log_file_name='network_cohesion_whole_thread.log', log_file_path=os.getcwd(),information='*' * 20 + 'Program Done' + '*' * 20 + '\n' * 4)
 
 
 main()

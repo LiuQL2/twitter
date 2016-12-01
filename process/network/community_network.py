@@ -3,6 +3,9 @@
 
 """
 过滤掉认证的用户，筛选需要进行可视化的社区，去掉与认证用户相关的边，
+需要两个文件:
+所有边文件（source, target, number_of_interaction, weight)。csv格式，中间用逗号隔开，无header
+所有节点所属社区的文件(user_id, community_id)。csv格式，目前是用空格隔开。以后改为逗号隔开，无header。
 """
 import pandas as pd
 import numpy as np
@@ -83,16 +86,35 @@ def get_community_edges(path ,edge_file, hash_node_dataFrame,sep = ','):
     :return:经过过滤后与社区相对应的网络边的DataFrame，格式为(source, target, weight).
     """
     print hash_node_dataFrame
-    total_edges_dataFrame = pd.read_csv(path + edge_file,sep = sep,names = ['source','target','number_of_interaction','weight'],dtype = {'source':np.str,'target':np.str,'number_of_interaction':np.int32,'weight':np.float64 })
+    total_edges_dataFrame = pd.read_csv(path + edge_file,sep = sep,names = ['source','target','number_of_interaction','weight'],dtype = {'source':np.str,'target':np.str})
     print total_edges_dataFrame
 
     community_edges_dataFrame = pd.DataFrame()
-    for index in total_edges_dataFrame.index:
-        if check_community_edges(source=total_edges_dataFrame.source[index], target=total_edges_dataFrame.target[index],hash_node_dataFrame=hash_node_dataFrame,hash_size=100,column_name='user_id'):
-            community_edges_dataFrame = community_edges_dataFrame.append(total_edges_dataFrame.loc[index],ignore_index=False)
-            print 'get community_edges', 'keep', index
-        else:
-            print 'get community_edges', 'filter', index
+
+
+    community_edges_dataFrame = pd.DataFrame()
+    if type(hash_node_dataFrame) == dict:
+        for index in total_edges_dataFrame.index:
+            if check_community_edges(source=total_edges_dataFrame.source[index],
+                                     target=total_edges_dataFrame.target[index],
+                                     hash_node_dataFrame=hash_node_dataFrame, hash_size=100, column_name='user_id'):
+                community_edges_dataFrame = community_edges_dataFrame.append(total_edges_dataFrame.loc[index],
+                                                                             ignore_index=False)
+                print 'get community_edges', 'keep', index
+            else:
+                print 'get community_edges', 'filter', index
+        pass
+    else:
+        user_id_list = list(set(list(hash_node_dataFrame.user_id)))
+        for source in user_id_list:
+            condidate_edges = total_edges_dataFrame[total_edges_dataFrame.source == source]
+            for target in condidate_edges.target:
+                if target in user_id_list:
+                    community_edges_dataFrame = community_edges_dataFrame.append(condidate_edges[condidate_edges.target == target])
+                    print 'get community_edges', 'keep', source, target
+                else:
+                    print 'get community_edges', 'filter', source,target
+
     return community_edges_dataFrame
 
 
@@ -148,11 +170,11 @@ def main(path, node_file, edge_file,verified_user_file,community_size, number_of
     """
     community_nodes_dataFrame = get_community_nodes(path = path,file_name = node_file,community_size=community_size,number_of_community=number_of_community,sep = ' ',names=['user_id','community'],header=None)
     community_nodes_dataFrame = filter_verified_user(path = path,community_user_dataFrame=community_nodes_dataFrame,verified_user_file=verified_user_file,header=None)
-    hash_node_dataFrame_dict = hash_dataFrame(dataFrame=community_nodes_dataFrame,column='user_id', hash_size = 100)
-    community_edges_dataFrame =get_community_edges(path = path,sep = ',',edge_file = edge_file,hash_node_dataFrame=hash_node_dataFrame_dict)
-    community_nodes_dataFrame.to_csv(path + 'community_nodes_'+ str(community_size) + '.csv',index = False, header=False,columns=['user_id', 'community_id'])
+    # community_nodes_dataFrame = hash_dataFrame(dataFrame=community_nodes_dataFrame,column='user_id', hash_size = 100)
+    community_edges_dataFrame =get_community_edges(path = path,sep = ',',edge_file = edge_file,hash_node_dataFrame=community_nodes_dataFrame)
+    community_nodes_dataFrame.to_csv(path + 'community_nodes.csv',index = False, header=False,columns=['user_id', 'community_id'])
     # community_nodes_dataFrame.to_csv(path + 'community_nodes.csv',index = False, header=False)
-    community_edges_dataFrame.to_csv(path + 'community_edges_'+ str(community_size) + '.csv',index = False, header=False, columns=['source','target','number_of_interaction','weight'])
+    community_edges_dataFrame.to_csv(path + 'community_edges.csv',index = False, header=False, columns=['source','target','number_of_interaction','weight'])
     # community_edges_dataFrame.to_csv(path + 'community_edges.csv',index = False, header=False)
 
 

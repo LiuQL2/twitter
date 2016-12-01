@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 为一个社区中出入度比较高的用户查找姓名，以便在可视化的时候显示其标签。
+需要的文件：
+社区节点文件：(user_id,community_id),csv，逗号隔开，无header。
+社区边文件：(source, target, number_of_interaction, weight),csv，逗号隔开，无header。
+所有用户id，name的文件(user_id, is_verified, name),csv，逗号隔开，无header。
 """
 
 import pandas as pd
@@ -48,7 +52,7 @@ def calculate_degree(path, edge_file, node_file, sep = ',',header = None):
     return node_dataFrame
 
 
-def label_nodes(node_dataFrame, top_node_size, path, label_file,sep = ',',header = True):
+def label_nodes(node_dataFrame, top_node_size, path, label_file,sep = ','):
     """
     根据节点的出入度，对度为top的节点进行打标签。
     :param node_dataFrame: 计算了出入度、度的节点文件。
