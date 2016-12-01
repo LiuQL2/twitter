@@ -80,12 +80,12 @@ def label_nodes(node_dataFrame, top_node_size, path, label_file,sep = ','):
 
 def main():
     path = 'D:/LiuQL/eHealth/twitter/visualization/network/'
-    edge_file = 'community_edges_2000.csv'
-    node_file = 'community_nodes_2000.csv'
+    edge_file = 'community_edges.csv'
+    node_file = 'community_nodes.csv'
     label_file = 'user_all_yang.csv'
     node_dataFrame = calculate_degree(path = path,edge_file=edge_file,node_file=node_file)
     labeled_node_dataFrame = label_nodes(node_dataFrame=node_dataFrame,top_node_size=10,path = path, label_file=label_file)
-    labeled_node_dataFrame.to_csv( path + 'labeled_' + node_file,index = False, header = True)
+    labeled_node_dataFrame.to_csv( path + 'labeled_' + node_file,index = False, header = True,columns = ['user_id','community_id','label'])
 
 
 # time.sleep(1800)

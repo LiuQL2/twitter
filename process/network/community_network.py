@@ -76,28 +76,25 @@ def filter_verified_user(path, community_user_dataFrame,verified_user_file,sep =
     return dataFrame
 
 
-def get_community_edges(path ,edge_file, hash_node_dataFrame,sep = ','):
+def get_community_edges(path ,edge_file, node_dataFrame,sep = ','):
     """
     根据过滤掉的社区用户，对原始的社区边进行过滤，即：如果社区中的一条边的source和target被过滤掉了，那这一条边也就要被过滤掉。
     :param path:网络边文件的存储路径。
     :param edge_file:网络边文件。格式为(source, target, number_of_interaction,weight)，其中以sep进行分割。这里也就是所有边数据的文件，也即total_network。
-    :param hash_node_dataFrame:经过hash之后的节点DataFrame。Note：这实际上是一个字典，其中key值是hash可能出现的值，每一个元素是一个DataFrame。
+    :param node_dataFrame:经过hash之后的节点DataFrame。Note：这实际上是一个字典，其中key值是hash可能出现的值，每一个元素是一个DataFrame。
     :param sep:网络边edge_file文件的分隔符。
     :return:经过过滤后与社区相对应的网络边的DataFrame，格式为(source, target, weight).
     """
-    print hash_node_dataFrame
+    print node_dataFrame
     total_edges_dataFrame = pd.read_csv(path + edge_file,sep = sep,names = ['source','target','number_of_interaction','weight'],dtype = {'source':np.str,'target':np.str})
     print total_edges_dataFrame
 
     community_edges_dataFrame = pd.DataFrame()
-
-
-    community_edges_dataFrame = pd.DataFrame()
-    if type(hash_node_dataFrame) == dict:
+    if type(node_dataFrame) == dict:
         for index in total_edges_dataFrame.index:
             if check_community_edges(source=total_edges_dataFrame.source[index],
                                      target=total_edges_dataFrame.target[index],
-                                     hash_node_dataFrame=hash_node_dataFrame, hash_size=100, column_name='user_id'):
+                                     node_dataFrame=node_dataFrame, hash_size=100, column_name='user_id'):
                 community_edges_dataFrame = community_edges_dataFrame.append(total_edges_dataFrame.loc[index],
                                                                              ignore_index=False)
                 print 'get community_edges', 'keep', index
@@ -105,7 +102,7 @@ def get_community_edges(path ,edge_file, hash_node_dataFrame,sep = ','):
                 print 'get community_edges', 'filter', index
         pass
     else:
-        user_id_list = list(set(list(hash_node_dataFrame.user_id)))
+        user_id_list = list(set(list(node_dataFrame.user_id)))
         for source in user_id_list:
             condidate_edges = total_edges_dataFrame[total_edges_dataFrame.source == source]
             for target in condidate_edges.target:
@@ -138,19 +135,19 @@ def hash_dataFrame(dataFrame,column,hash_size):
     return hash_dataFrame_dict
 
 
-def check_community_edges(source, target, hash_node_dataFrame,hash_size,column_name):
+def check_community_edges(source, target, node_dataFrame,hash_size,column_name):
     """
     检验一条有向边(source, target)边的两端节点是不是在保留的社区中。
     :param source:有向边的起始点。
     :param target:有向边的终点。
-    :param hash_node_dataFrame:经过hash存储之后的节点数据。
+    :param node_dataFrame:经过hash存储之后的节点数据。
     :param hash_size:经过hash存储之后的hash数量。
-    :param column_name:   hash_node_dataFrame中节点所在的列名。
+    :param column_name:   node_dataFrame中节点所在的列名。
     :return:两个节点都在社区节点中：True， 否则：False。
     """
     source_hash_number = hash(str(source)) % hash_size
     target_hash_number = hash(str(target)) % hash_size
-    if source in list(hash_node_dataFrame[source_hash_number][column_name]) and target in list(hash_node_dataFrame[target_hash_number][column_name]):
+    if source in list(node_dataFrame[source_hash_number][column_name]) and target in list(node_dataFrame[target_hash_number][column_name]):
         return True
     else:
         return False
@@ -171,7 +168,7 @@ def main(path, node_file, edge_file,verified_user_file,community_size, number_of
     community_nodes_dataFrame = get_community_nodes(path = path,file_name = node_file,community_size=community_size,number_of_community=number_of_community,sep = ' ',names=['user_id','community'],header=None)
     community_nodes_dataFrame = filter_verified_user(path = path,community_user_dataFrame=community_nodes_dataFrame,verified_user_file=verified_user_file,header=None)
     # community_nodes_dataFrame = hash_dataFrame(dataFrame=community_nodes_dataFrame,column='user_id', hash_size = 100)
-    community_edges_dataFrame =get_community_edges(path = path,sep = ',',edge_file = edge_file,hash_node_dataFrame=community_nodes_dataFrame)
+    community_edges_dataFrame =get_community_edges(path = path,sep = ',',edge_file = edge_file,node_dataFrame=community_nodes_dataFrame)
     community_nodes_dataFrame.to_csv(path + 'community_nodes.csv',index = False, header=False,columns=['user_id', 'community_id'])
     # community_nodes_dataFrame.to_csv(path + 'community_nodes.csv',index = False, header=False)
     community_edges_dataFrame.to_csv(path + 'community_edges.csv',index = False, header=False, columns=['source','target','number_of_interaction','weight'])
