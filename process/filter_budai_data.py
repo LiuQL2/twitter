@@ -25,12 +25,18 @@ def read_json(file_name, path_data, path_filter,path_dubai):
     origin_data_json_file = open(path_data + file_name, 'r')#读取json
     temp_filter_file = open(path_filter + 'no_dubai_' + file_name, 'wb')#构建新文件，用户保存过滤掉的信息
     temp_dubai_file = open(path_dubai + 'dubai_' + file_name, 'wb')#构建新文件，用于保存迪拜地区的数据
+    dubai_number = 0
+    no_dubai_number = 0
     for line in origin_data_json_file:#循环判断json文件中的每一行
         # print type(line)#输出改行数据
-        verify_data(line, temp_dubai_file=temp_dubai_file,temp_filter_file=temp_filter_file)#调用函数对一条数据进行判断，并放入到对应的文件中
+        number = verify_data(line, temp_dubai_file=temp_dubai_file,temp_filter_file=temp_filter_file)#调用函数对一条数据进行判断，并放入到对应的文件中
+        dubai_number = dubai_number + number['dubai_number']
+        no_dubai_number = no_dubai_number + number['no_dubai_number']
+
     origin_data_json_file.close()#依次关闭三个文件
     temp_filter_file.close()
     temp_dubai_file.close()
+    return {'dubai_number':dubai_number,'no_dubai_number': no_dubai_number}
 
 
 def verify_data(line, temp_filter_file, temp_dubai_file):
@@ -41,29 +47,37 @@ def verify_data(line, temp_filter_file, temp_dubai_file):
     :param temp_dubai_file: 如果该条数据是迪拜地区的，该条数据需要保存的位置
     :return: 无返回内容
     """
+    dubai_number = 0
+    no_dubai_number = 0
     row = json.loads(line, object_pairs_hook=OrderedDict)  # 提取json形式
     if 'enrichRegion' in row['actor']['location'].keys():#enrichRegion字段在location里面
         enrich_region = row['actor']['location']['enrichRegion'].title()
         if 'Dubai' in enrich_region or 'دبي' in row['actor']['location']['enrichRegion']:#可能有阿拉伯语或者英语，所以都要判断
             temp_dubai_file.write(line)#保存到是迪拜数据的文件
+            dubai_number = dubai_number + 1
             # print 'dubai_file: ', enrich_region
         else:
             line = add_error_type(line, error_type='"enrichRegion, no Dubai"')#追加过滤原因
             temp_filter_file.write(line)
+            no_dubai_number = no_dubai_number + 1
             # print 'filer_file: ', enrich_region
     elif 'enrichRegion' not in row['actor']['location'].keys() and 'userDisplayName' in row['actor']['location'].keys():#enrichRegion不在location里面，但是userDisplayName在location里面
         user_display_name = row['actor']['location']['userDisplayName'].title()
         if 'Dubai' in user_display_name or 'دبي' in row['actor']['location']['userDisplayName']:
             temp_dubai_file.write(line)
+            dubai_number = dubai_number + 1
             # print 'dubai_file: ', user_display_name
         else:#userDisplayName里面没有迪拜信息
             line = add_error_type(line, error_type='"userDisplayName, no enrichRegion, no Dubai"')#追加过滤原因
             temp_filter_file.write(line)
+            no_dubai_number = no_dubai_number + 1
             # print 'filer_file: ', user_display_name
     else:#两个字段都不在location里面，无法判断
         line = add_error_type(line, error_type='"no userDisplayName, no enrichRegion"')#追加过滤原因
         temp_filter_file.write(line)
-        pass
+        no_dubai_number = no_dubai_number + 1
+
+    return {'dubai_number':dubai_number,'no_dubai_number': no_dubai_number}
 
 
 def add_error_type(line, error_type):
@@ -98,23 +112,31 @@ def get_data_file_name():
     file_name_list = os.listdir(path_data)#获得原始json文件所在目录里面的所有文件名称
     index = 0
     start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+    dubai_number = 0
+    no_dubai_number = 0
     for file_name in file_name_list:
         if 'part-r' in file_name and '.json' in file_name and 'crc' not in file_name:
             index = index + 1
             print index, file_name, 'is being parsing......'
-            read_json(file_name,path_data, path_filter,path_dubai=path_dubai)
+            counter = read_json(file_name,path_data, path_filter,path_dubai=path_dubai)
+            dubai_number = dubai_number + counter['dubai_number']
+            no_dubai_number = no_dubai_number + counter['no_dubai_number']
 
     end_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
-    parse_info_file = open(os.getcwd().replace('process', '') + 'filter_data_info.txt', 'wb')
+    parse_info_file = open(os.getcwd() + '/filter_data_info.log', 'wb')
     parse_info_file.write("start time:" + str(start_time) + '\n')
     parse_info_file.write("end time:" + str(end_time) + '\n')
     parse_info_file.write("total number of files that parsed:" + str(index) + '\n')
+    parse_info_file.write("total number of Dubai tweet:" + str(dubai_number) + '\n')
+    parse_info_file.write("total number of No Dubai tweet:" + str(no_dubai_number) + '\n')
     parse_info_file.close()
 
     print '================================================================='
     print 'start_time:',start_time
     print 'end_time:',end_time
+    print "total number of Dubai tweet:", dubai_number
+    print "total number of No Dubai tweet:", no_dubai_number
     print '================================================================='
 
 # path = 'D:/LiuQL/eHealth/twitter/'

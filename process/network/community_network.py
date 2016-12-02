@@ -178,6 +178,6 @@ def main(path, node_file, edge_file,verified_user_file,community_size, number_of
 main('D:/LiuQL/eHealth/twitter/visualization/network/',
      node_file='userId_communityId_2016-11-25.txt',
      edge_file='total_edge_weight.csv',
-     verified_user_file='user_verified_yang.csv',
+     verified_user_file='user_verified_long.csv',
      community_size=2000,
      number_of_community=8)

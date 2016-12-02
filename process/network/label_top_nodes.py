@@ -70,7 +70,7 @@ def label_nodes(node_dataFrame, top_node_size, path, label_file,sep = ','):
     node_dataFrame.index = node_dataFrame.user_id
     for community_id in community_id_list:
         print 'community id:', community_id, 'is being label...'
-        community_node_dataFrame = (node_dataFrame[node_dataFrame.community_id == community_id]).sort_values(by = ['degree'], ascending = [0])
+        community_node_dataFrame = (node_dataFrame[node_dataFrame.community_id == community_id]).sort_values(by = ['out_degree'], ascending = [0])
         top_id_list = list(community_node_dataFrame.user_id)[0:top_node_size]
         for id in top_id_list:
             node_dataFrame.loc[[id],['label']] = id_label_dataFrame.label[id]
@@ -84,7 +84,7 @@ def main():
     node_file = 'community_nodes.csv'
     label_file = 'user_all_yang.csv'
     node_dataFrame = calculate_degree(path = path,edge_file=edge_file,node_file=node_file)
-    labeled_node_dataFrame = label_nodes(node_dataFrame=node_dataFrame,top_node_size=10,path = path, label_file=label_file)
+    labeled_node_dataFrame = label_nodes(node_dataFrame=node_dataFrame,top_node_size=20,path = path, label_file=label_file)
     labeled_node_dataFrame.to_csv( path + 'labeled_' + node_file,index = False, header = True,columns = ['user_id','community_id','label'])
 
 
