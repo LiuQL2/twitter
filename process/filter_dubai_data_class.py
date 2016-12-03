@@ -126,3 +126,7 @@ if __name__ == '__main__':
     reserved_data_save_to = 'D:/LiuQL/eHealth/twitter/data/data_dubai/'  # 迪拜地区数据文件所在的目录
     filter = filterDubai()
     filter.filter_data(origin_file_path=origin_file_path,reserved_data_save_to=reserved_data_save_to, filtered_data_save_to=filtered_data_save_to)
+    file = open(os.getcwd() + 'filter_data.info','wb')
+    file.write('number of Dubai data: ' + str(filter.dubai_data_number) + '\n')
+    file.write('number of No Dubai data: ' + str(filter.no_dubai_data_number) + '\n')
+    file.close()
