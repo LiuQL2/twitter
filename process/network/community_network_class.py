@@ -14,18 +14,13 @@ from utility.functions import read_csv_as_dataFrame_by_chunk
 import csv
 
 class communityNetwork(object):
-    def __init__(self,userId_communityId_path_file, total_edge_path_file,community_size, community_number,sep = ',',header = None):
+    def __init__(self,userId_communityId_path_file,community_size, community_number,header = None):
         self.user_community_path_file = userId_communityId_path_file
-        self.total_edge_path_file = total_edge_path_file
         self.community_size = community_size
         self.community_number = community_number
-        self.sep = sep
         self.header = header
 
-
-
     def get_community_nodes(self):
-        # self.nodes_dataFrame = pd.read_csv(self.user_community_path_file, index_col=False, sep=self.sep, header=self.header,names=['id', 'community_id'], dtype={'id': np.str})
         self.nodes_dataFrame = pd.read_csv(self.user_community_path_file, index_col=False, sep=' ', header=self.header,names=['id', 'community_id'], dtype={'id': np.str})
         print self.nodes_dataFrame.head()
         community_list = set(list(self.nodes_dataFrame.community_id))
@@ -48,6 +43,40 @@ class communityNetwork(object):
         print keep_community_list
         self.community_nodes_dataFrame = keep_nodes_dataFrame
         return keep_nodes_dataFrame
+
+
+    def get_community_top_nodes(self,number_of_top_users, community_user_ordered_path_file, filter_verified_user = False, verified_user_path_file = None,sep = ',',header = None):
+        community_user_ordered_file = open(community_user_ordered_path_file, 'r')
+        keep_nodes_dataFrame = pd.DataFrame()
+
+        if filter_verified_user == False:
+            pass
+        else:
+            verified_user_dataFrame = pd.read_csv(verified_user_path_file, names=['id', 'is_verified', 'name'],
+                                              dtype={'id': np.str}, sep=sep, header=header)
+            verified_user_list = list(set(list(verified_user_dataFrame.id)))
+        community_id = 0
+        for line in community_user_ordered_file:
+            community_id = community_id + 1
+            user_degree_list = line.split(' ')
+            community_user_list = []
+            for user_degree in user_degree_list:
+                user_id = user_degree.split('#')[0]
+                if filter_verified_user == False:
+                    community_user_list.append(user_id)
+                else:
+                    if user_id not in verified_user_list:
+                        community_user_list.append(user_id)
+                if len(community_user_list) == number_of_top_users:
+                    print '###############', len(community_user_list)
+                    break
+            community_user_dataFrame = pd.DataFrame(data = pd.Series(community_user_list),columns=['id'])
+            community_user_dataFrame['community_id'] = community_id
+            community_user_dataFrame.index = community_user_dataFrame.id
+            keep_nodes_dataFrame = keep_nodes_dataFrame.append(community_user_dataFrame, ignore_index=False)
+            if len(list(set(list(keep_nodes_dataFrame.community_id)))) == self.community_number:
+                break
+        self.community_nodes_dataFrame = keep_nodes_dataFrame
 
 
     def filter_verified_user(self,verified_user_path_file,sep = ',',header = None):
@@ -77,12 +106,12 @@ class communityNetwork(object):
         return dataFrame
 
 
-    def get_community_edges(self,wether_hash = True, hash_size = 100):
+    def get_community_edges(self,total_edge_weight_path_file,sep = ',',wether_hash = True, hash_size = 100):
         """
         根据过滤掉的社区用户，对原始的社区边进行过滤，即：如果社区中的一条边的source和target被过滤掉了，那这一条边也就要被过滤掉。
         :return:经过过滤后与社区相对应的网络边的DataFrame，格式为(source, target, weight).
         """
-        self.edge_dataFrame = pd.read_csv(self.total_edge_path_file, index_col=False, sep = self.sep,names = ['source','target','weight'],dtype = {'source':np.str,'target':np.str})
+        self.edge_dataFrame = pd.read_csv(total_edge_weight_path_file, index_col=False, sep = sep,names = ['source','target','weight'],dtype = {'source':np.str,'target':np.str})
         if wether_hash:
             self.edge_dataFrame = self.__hash_dataFrame__(column= 'source', hash_size=hash_size)
         else:
@@ -173,17 +202,38 @@ if __name__ == '__main__':
     print 'yes'
 
     path = 'D:/LiuQL/eHealth/twitter/visualization/network/'
-    userId_communityId_file = 'userId_communityId_2016-11-25.txt'
-    total_edge_file = 'total_edge_weight.csv'
-    verified_user_file = 'user_verified_long.csv'
-    id_label_file = 'user_all_yang.csv'
+    path_community_node_edge_save_to = 'D:/LiuQL/eHealth/twitter/visualization/network/'
+    userId_communityId_file = path + 'userId_communityId_2016-11-25.txt'
+    total_edge_file = path + 'total_edge_weight.csv'
+    verified_user_file = path + 'user_verified_long.csv'
+    id_label_file = path +  'user_all_yang.csv'
+    community_user_ordered_file = path +'new_community'
     community_size = 2000
     commnnity_number = 8
+    number_of_top_users = 1000
+    label_users_number = 20
+    save_node_file_name = 'community_nodes.csv'
+    save_edge_file_name = 'community_edges.csv'
 
-    community_network = communityNetwork(userId_communityId_path_file= path + userId_communityId_file,total_edge_path_file= path + total_edge_file,community_size=community_size,community_number=commnnity_number)
-    community_network.get_community_nodes()
-    community_network.get_community_edges()
-    community_network.filter_verified_user(verified_user_path_file= path + verified_user_file)
-    community_network.label_nodes(top_node_size=20,label_path_file= path + id_label_file)
-    community_network.community_nodes_dataFrame.to_csv(path + 'community_nodes.csv',index = False, header = True, columns = ['id','community_id','label'])
-    community_network.community_edges_dataFrame.to_csv(path + 'community_edges.csv', index = False, header= True, columns= ['source','target','weight'])
+    # path_community_node_edge_save_to = '/pegasus/harir/Qianlong/data/network/node_edge/'
+    #
+    # # userId_communityId_file = 'userId_communityId_2016-11-25.txt'
+    # userId_communityId_file = '/pegasus/harir/liuming/test/SLPAw_total_network_run1_r0.01_v3_T100_socail_network_visualization'
+    #
+    # total_edge_file = '/pegasus/harir/sunweiwei/weight/total/'    +    'total_edge_weight'
+    #
+    # qianlong_network_path = '/pegasus/harir/Qianlong/data/network/'
+    # verified_user_file = qianlong_network_path + 'user_verified_long.csv'
+    # id_label_file = qianlong_network_path + 'user_all_yang.csv'
+    #
+    # community_user_ordered_file = '/pegasus/harir/yangjinfeng/date_network/' + 'new_community'
+
+
+    community_network = communityNetwork(userId_communityId_path_file= userId_communityId_file,community_size=community_size,community_number=commnnity_number)
+    # community_network.get_community_nodes()
+    community_network.get_community_top_nodes(number_of_top_users=number_of_top_users,community_user_ordered_path_file=community_user_ordered_file,filter_verified_user=True,verified_user_path_file=verified_user_file)
+    community_network.get_community_edges(total_edge_weight_path_file=total_edge_file,sep = ',',wether_hash=False)
+    # community_network.filter_verified_user(verified_user_path_file= verified_user_file)
+    community_network.label_nodes(top_node_size=label_users_number,label_path_file= id_label_file)
+    community_network.community_nodes_dataFrame.to_csv(path_community_node_edge_save_to + save_node_file_name,index = False, header = True, columns = ['id','community_id','label'])
+    community_network.community_edges_dataFrame.to_csv(path_community_node_edge_save_to + save_edge_file_name, index = False, header= True, columns= ['source','target','weight'])

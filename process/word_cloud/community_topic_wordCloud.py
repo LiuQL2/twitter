@@ -13,25 +13,23 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
-class wordCloud(object):
-    def __init__(self, top_words_file_path, key_word_list = list(), no_key_words_list = list()):
-        self.top_words_filename_list = get_dirlist(top_words_file_path,key_word_list=key_word_list,no_key_word_list=no_key_words_list)
-        self.top_words_file_path = top_words_file_path
+class communityTopicWordCloud(object):
+    def __init__(self, topic_words_file_path, font_path = None, key_word_list = list(), no_key_words_list = list()):
+        self.top_words_filename_list = get_dirlist(topic_words_file_path,key_word_list=key_word_list,no_key_word_list=no_key_words_list)
+        self.topic_words_file_path = topic_words_file_path
         self.community_topics = {}
         self.community_file = {}
+        self.font_path = font_path
         community_id_list = []
         for file_name in self.top_words_filename_list:
             community_id = int(file_name.split('-')[1])
             community_id_list.append(community_id)
         self.community_id_list = list(set(community_id_list))
-
         for community_id in community_id_list:
             self.community_file[community_id] = []
-
         for file_name in self.top_words_filename_list:
             community_id = int(file_name.split('-')[1])
             self.community_file[community_id].append(file_name)
-
 
 
     def plot_word_cloud(self, image_save_to,community_id_list = list()):
@@ -42,8 +40,6 @@ class wordCloud(object):
             pass
         self.__get_community_topics__(community_id_list)
 
-
-
         for community_id in self.community_topics.keys():
             community_topics = self.community_topics[community_id]
             print community_topics
@@ -53,22 +49,29 @@ class wordCloud(object):
                 index = 1
                 for topic_id, topic in community_topics.items():
                     plt.subplot(2,2,index)
-                    temp_word_cloud = WordCloud(background_color="white").generate(topic['word_list'])
+                    if self.font_path == None:
+                        temp_word_cloud = WordCloud(background_color="white").generate(topic['word_list'])
+                    else:
+                        temp_word_cloud = WordCloud(background_color="white",font_path=self.font_path).generate(topic['word_list'])
                     plt.imshow(temp_word_cloud)
-                    # plt.title(str(topic['topic_id'] + ':' + topic['topic_probability']))
                     plt.axis('off')
+                    plt.title('Probability:' + str(round(float(topic['topic_probability']),3)))
                     index = index + 1
-                plt.savefig( image_save_to + 'word_cloud_' + str(community_id) + '.png')
+                    plt.savefig(image_save_to + 'community_' + str(community_id) + '_topic.png')
             else:
                 index = 1
                 for topic_id, topic in community_topics.items():
                     plt.subplot(cloud_number,1,index)
-                    temp_word_cloud = WordCloud(background_color="white").generate(topic['word_list'])
+                    if self.font_path == None:
+                        temp_word_cloud = WordCloud(background_color="white").generate(topic['word_list'])
+                    else:
+                        temp_word_cloud = WordCloud(background_color="white",font_path=self.font_path).generate(topic['word_list'])
                     plt.imshow(temp_word_cloud)
                     # plt.title(str(topic['topic_id'] + ':' + topic['topic_probability']))
                     plt.axis('off')
+                    plt.title('Probability:' + str(round(float(topic['topic_probability']),3)))
                     index = index + 1
-                plt.savefig( image_save_to + 'word_cloud_' + str(community_id) + '.png')
+                plt.savefig( image_save_to + 'community_' + str(community_id) + '_topic.png')
 
 
 
@@ -92,13 +95,12 @@ class wordCloud(object):
         community_top_words = {}
         topic_index = 0
         for file_name in self.community_file[community_id]:
-            words_file = open(self.top_words_file_path + file_name, 'r')
+            words_file = open(self.topic_words_file_path + file_name, 'r')
             for line in words_file:
                 row = json.loads(line)
                 temp_line = line
                 temp_line = temp_line[1:len(temp_line) - 1]
                 print 'line', line
-                print chardet.detect(line)
                 print 'temp', temp_line
                 print 'row',row
                 community_top_words[topic_index] = self.__parse_topic__(topic_index=topic_index,row = row)
@@ -111,22 +113,20 @@ class wordCloud(object):
         topic['topic_id'] = row['topicId']
         topic['topic_probability'] = row['topicProb']
         topic['word_list'] = {}
-
         for word in row['words']:
-
-            print chardet.detect(word['wordStr'].encode("UTF-8"))
-            print type(word['wordStr'])
-            # word_name =  unicodedata.normalize('NFKD',word['wordStr']).encode('ascii','ignore')
-            word_name =  word['wordStr'].encode("ISO-8859-6",'ignore')
-            word_name =  word['wordStr'].encode("ISO-8859-6")
-            # print word_name
+            word_name =  word['wordStr']
             topic['word_list'][word_name] = word['weight']
         return topic
 
 
 
 if __name__ == '__main__':
-    top_words_file_path = 'D:/LiuQL/eHealth/twitter/wordCloud/top_words/'
-    cloud = wordCloud(top_words_file_path=top_words_file_path)
-    cloud.plot_word_cloud(community_id_list=[5],image_save_to= 'D:/')
-    # print cloud.community_topics
+    topic_words_file_path = 'D:/LiuQL/eHealth/twitter/wordCloud/community_topic_words/'
+    path_save_to = 'D:/LiuQL/eHealth/twitter/wordCloud/word_cloud_image/community_topic_image/'
+    font_path = 'C:/Windows/fonts/Arial/arial.ttf'
+
+    # topic_words_file_path = '/pegasus/harir/yangjinfeng/community/topic/'
+    # font_path = None
+    # path_save_to = '/pegasus/harir/Qianlong/data/word_cloud_image/community_topic_image/'
+    cloud = communityTopicWordCloud(topic_words_file_path=topic_words_file_path,font_path=font_path)
+    cloud.plot_word_cloud(community_id_list=[],image_save_to= path_save_to)
