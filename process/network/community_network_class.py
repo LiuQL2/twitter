@@ -245,7 +245,7 @@ if __name__ == '__main__':
     label_users_number = 20
     id_label_file = qianlong_network_path + 'user_all_yang.csv'
     verified_user_file = qianlong_network_path + 'user_verified_long.csv'
-    total_edge_file = '/pegasus/harir/sunweiwei/weight/total/'    +    'total_edge_weight'
+    total_edge_file = '/pegasus/harir/sunweiwei/weight/total/'    +    'total_network_weight'
 
     for community_user_ordered_file in community_user_ordered_file_list:
         print community_user_ordered_file + 'is being processing.'
@@ -254,7 +254,7 @@ if __name__ == '__main__':
         save_edge_file_name = community_user_ordered_file.replace('.icpm_ordered','') + '_edges_top_' + str(number_of_top_users) + '_contain_verified' + '.csv'
 
         community_network = communityNetwork(community_size=community_size,community_number=commnnity_number)
-        community_network.get_community_top_nodes(number_of_top_users=number_of_top_users,community_user_ordered_path_file=community_user_ordered_file,filter_verified_user=False,verified_user_path_file=verified_user_file)
+        community_network.get_community_top_nodes(number_of_top_users=number_of_top_users,community_user_ordered_path_file=community_file_path + community_user_ordered_file,filter_verified_user=False,verified_user_path_file=verified_user_file)
         community_network.get_community_edges(total_edge_weight_path_file=total_edge_file,sep = '\t',wether_hash=False)
         community_network.label_nodes(top_node_size=label_users_number,label_path_file= id_label_file)
         community_network.community_nodes_dataFrame.to_csv(path_community_node_edge_save_to + save_node_file_name,index = False, header = True, columns = ['id','community_id','label'])
