@@ -20,6 +20,7 @@ class communityTopicWordCloud(object):
         self.community_topics = {}
         self.community_file = {}
         self.font_path = font_path
+        self.error_community_id_list = []
         community_id_list = []
         for file_name in self.top_words_filename_list:
             community_id = int(file_name.split('-')[1])
@@ -103,8 +104,12 @@ class communityTopicWordCloud(object):
                 print 'line', line
                 print 'temp', temp_line
                 print 'row',row
-                community_top_words[topic_index] = self.__parse_topic__(topic_index=topic_index,row = row)
-                topic_index = topic_index + 1
+                temp_topic = self.__parse_topic__(topic_index=topic_index,row = row)
+                if temp_topic == None:
+                    pass
+                else:
+                    community_top_words[topic_index] = temp_topic
+                    topic_index = topic_index + 1
             words_file.close()
         return community_top_words
 
@@ -116,7 +121,10 @@ class communityTopicWordCloud(object):
         for word in row['words']:
             word_name =  word['wordStr']
             topic['word_list'][word_name] = word['weight']
-        return topic
+        if len(topic) == 0:
+            return topic
+        else:
+            return topic
 
 
 
@@ -129,4 +137,4 @@ if __name__ == '__main__':
     # font_path = None
     # path_save_to = '/pegasus/harir/Qianlong/data/word_cloud_image/community_topic_image/'
     cloud = communityTopicWordCloud(topic_words_file_path=topic_words_file_path,font_path=font_path)
-    cloud.plot_word_cloud(community_id_list=[],image_save_to= path_save_to)
+    cloud.plot_word_cloud(community_id_list=[2],image_save_to= path_save_to)
