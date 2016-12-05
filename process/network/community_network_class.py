@@ -59,6 +59,7 @@ class communityNetwork(object):
         for line in community_user_ordered_file:
             community_id = community_id + 1
             user_degree_list = line.split(' ')
+            max_user_number = max(number_of_top_users, len(user_degree_list)-1)
             community_user_list = []
             for user_degree in user_degree_list:
                 user_id = user_degree.split('#')[0]
@@ -67,7 +68,7 @@ class communityNetwork(object):
                 else:
                     if user_id not in verified_user_list:
                         community_user_list.append(user_id)
-                if len(community_user_list) == number_of_top_users:
+                if len(community_user_list) == max_user_number:
                     print '###############', len(community_user_list)
                     break
             community_user_dataFrame = pd.DataFrame(data = pd.Series(community_user_list),columns=['id'])
@@ -76,6 +77,7 @@ class communityNetwork(object):
             keep_nodes_dataFrame = keep_nodes_dataFrame.append(community_user_dataFrame, ignore_index=False)
             if len(list(set(list(keep_nodes_dataFrame.community_id)))) == self.community_number:
                 break
+        community_user_ordered_file.close()
         self.community_nodes_dataFrame = keep_nodes_dataFrame
 
 
