@@ -50,6 +50,7 @@ class communityNetwork(object):
         keep_nodes_dataFrame = pd.DataFrame()
 
         if filter_verified_user == False:
+            verified_user_list = []
             pass
         else:
             verified_user_dataFrame = pd.read_csv(verified_user_path_file, names=['id', 'is_verified', 'name'],
@@ -59,16 +60,17 @@ class communityNetwork(object):
         for line in community_user_ordered_file:
             community_id = community_id + 1
             user_degree_list = line.split(' ')
-            max_user_number = max(number_of_top_users, len(user_degree_list)-1)
+            user_degree_list.pop()
             community_user_list = []
             for user_degree in user_degree_list:
                 user_id = user_degree.split('#')[0]
                 if filter_verified_user == False:
                     community_user_list.append(user_id)
+                    print 'find community nodes*********',user_id
                 else:
                     if user_id not in verified_user_list:
                         community_user_list.append(user_id)
-                if len(community_user_list) == max_user_number:
+                if len(community_user_list) == number_of_top_users:
                     print '###############', len(community_user_list)
                     break
             community_user_dataFrame = pd.DataFrame(data = pd.Series(community_user_list),columns=['id'])
