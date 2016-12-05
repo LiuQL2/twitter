@@ -14,13 +14,14 @@ sys.setdefaultencoding('utf-8')
 
 
 class communityTopicWordCloud(object):
-    def __init__(self, topic_words_file_path, font_path = None, key_word_list = list(), no_key_words_list = list()):
+    def __init__(self, topic_words_file_path, font_path = None, key_word_list = list(), no_key_words_list = list(),max_topic_number = 4):
         """
         用来初始化一个主题词云的实例
         :param topic_words_file_path: 主题top词文件所在的目录。
         :param font_path: 字体路径，默认为空，在windows系统上需要赋值。
         :param key_word_list: 在目录中读取主题词文件的时候文件名所需要的关键词
         :param no_key_words_list:在目录中读取主题词文件的时候文件名不包含的关键词
+        :param max_topic_number:一个社区最多画多少个主题的词云。
         :return:Nothing to return。
         """
         self.topic_words_filename_list = get_dirlist(topic_words_file_path,key_word_list=key_word_list,no_key_word_list=no_key_words_list)
@@ -29,6 +30,7 @@ class communityTopicWordCloud(object):
         self.community_file = {}#每一个社区对应的主题词文件，因为一个社区可能由多个文件，所以在进行保存某一个社区对应哪些文件。一遍画图时直接读取。
         self.font_path = font_path#字体路径，有些文字需要制定字体，如阿拉伯语。
         self.error_community_id_list = []
+        self.max_topic_number = max_topic_number
         community_id_list = []
         for file_name in self.topic_words_filename_list:
             community_id = int(file_name.split('-')[1])
@@ -61,7 +63,7 @@ class communityTopicWordCloud(object):
             print community_topics
             print community_id
             cloud_number = len(community_topics)
-            if cloud_number == 4:
+            if cloud_number == self.max_topic_number:
                 index = 1
                 for topic_id, topic in community_topics.items():
                     plt.subplot(2,2,index)
@@ -99,16 +101,29 @@ class communityTopicWordCloud(object):
         for community_id in community_id_list:
             community_id = int(community_id)
             self.community_topics[community_id] = self.__parse_topic_words_for_each_community__(community_id=community_id)
-            if len(self.community_topics[community_id]) > 4:
+            # if len(self.community_topics[community_id]) > self.max_topic_number:
+            #     id_probability = {}
+            #     for topic_id, value in self.community_topics[community_id].items():
+            #         # id_probability[topic_id] = value['topic_probability']
+            #         self.community_topics[community_id].pop(topic_id)
+            #         if len(self.community_topics[community_id]) == self.max_topic_number:
+            #             break
+            #     pass
+            # else:
+            #     pass
+
+            if len(self.community_topics[community_id]) > self.max_topic_number:
+                community_topics = {}
                 id_probability = {}
                 for topic_id, value in self.community_topics[community_id].items():
-                    # id_probability[topic_id] = value['topic_probability']
-                    self.community_topics[community_id].pop(topic_id)
-                    if len(self.community_topics[community_id]) == 4:
-                        break
-                pass
+                    id_probability[topic_id] = value['topic_probability']
+                id_probability_sorted_list = sorted(id_probability.items(), lambda x, y: cmp(x[1], y[1]), reverse=True)
+                for index in range(0, self.max_topic_number, 1):
+                    community_topics[index] = self.community_topics[community_id][id_probability_sorted_list[index][0]]
+                self.community_topics[community_id] = community_topics
             else:
                 pass
+
 
 
     def __parse_topic_words_for_each_community__(self, community_id):
