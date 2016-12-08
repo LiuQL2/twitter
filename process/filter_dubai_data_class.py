@@ -76,7 +76,7 @@ class filterDubai(object):
         """
         print line
         row = json.loads(line, object_pairs_hook=OrderedDict)  # 提取json形式
-        if 'enrichRegion' in row['actor']['location'].keys():  # enrichRegion字段在location里面
+        if 'enrichRegion' in row['actor']['location'].keys() and row['actor']['location']['enrichRegion'] != None:  # enrichRegion字段在location里面
             enrich_region = row['actor']['location']['enrichRegion'].title()
             if 'Dubai' in enrich_region or 'دبي' in row['actor']['location']['enrichRegion']:  # 可能有阿拉伯语或者英语，所以都要判断
                 temp_dubai_file.write(line)  # 保存到是迪拜数据的文件
@@ -88,7 +88,7 @@ class filterDubai(object):
                 self.no_dubai_data_number = self.no_dubai_data_number + 1
                 # print 'filer_file: ', enrich_region
         elif 'enrichRegion' not in row['actor']['location'].keys() and 'userDisplayName' in row['actor'][
-            'location'].keys():  # enrichRegion不在location里面，但是userDisplayName在location里面
+            'location'].keys() and row['actor']['location']['userDisplayName'] != None:  # enrichRegion不在location里面，但是userDisplayName在location里面
             user_display_name = row['actor']['location']['userDisplayName'].title()
             if 'Dubai' in user_display_name or 'دبي' in row['actor']['location']['userDisplayName']:
                 temp_dubai_file.write(line)

@@ -67,8 +67,8 @@ class commmunityTopWordCloud(object):
             print 'community id:', community_id, file_name_key_word,' word cloud has been saved to', image_save_to
 
 if __name__ == '__main__':
-    directory_list = ['2016_03_23','2016_03_24','2016_03_25','2016_03_26','2016_03_27','2016_03_28','2016_03_29','2016_03_30','2016_03_31','total']
-    directory_list = ['2016_03_26','2016_03_27','2016_03_28','2016_03_29']
+    directory_list = ['2016_03_24','2016_03_25','2016_03_26','2016_03_27','2016_03_28','2016_03_29','2016_03_30','2016_03_31','total']
+    directory_list = ['2016_03_30','2016_03_31','total']
     top_words_path = 'D:/LiuQL/eHealth/twitter/wordCloud/community_top_words/'
     background_color = 'white'
     font_path = 'C:/Windows/fonts/Arial/arial.ttf'

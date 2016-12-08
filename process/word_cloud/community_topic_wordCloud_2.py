@@ -104,7 +104,7 @@ class communityTopicWordCloud(object):
     def __get_community_topics__(self,community_id_list ):
         """
         用来获取某一个社区的所有主题top词汇。
-        :param community_id_list:需要获取的社区id。 
+        :param community_id_list:需要获取的社区id。
         :return: 没有返回
         """
         for community_id in community_id_list:
@@ -178,7 +178,7 @@ class communityTopicWordCloud(object):
 
 
 if __name__ == '__main__':
-    directory_list = ['2016-03-25','2016-03-26','total']
+    directory_list = ['2016-03-29', '2016-03-30', '2016-03-31']
     topic_words_path = 'D:/LiuQL/eHealth/twitter/wordCloud/community_topic_words/'
     background_color = 'white'
     font_path = 'C:/Windows/fonts/Arial/arial.ttf'
