@@ -6,6 +6,7 @@ import numpy as np
 import json
 from wordcloud import WordCloud
 from utility.functions import get_dirlist
+from FullWidthStr import FullWidthStr
 import chardet
 import sys
 import time
@@ -31,6 +32,7 @@ class communityTopicWordCloud(object):
         self.community_file = {}#每一个社区对应的主题词文件，因为一个社区可能由多个文件，所以在进行保存某一个社区对应哪些文件。一遍画图时直接读取。
         self.font_path = font_path#字体路径，有些文字需要制定字体，如阿拉伯语。
         self.error_community_id_list = []
+        self.full_width_community_id_list = []
         self.max_topic_number = max_topic_number
         community_id_list = []
         for file_name in self.topic_words_filename_list:
@@ -44,7 +46,7 @@ class communityTopicWordCloud(object):
             self.community_file[community_id].append(file_name)
 
 
-    def plot_word_cloud(self, image_save_to,number_of_community = 0,community_id_list = list()):
+    def plot_word_cloud(self, image_save_to,number_of_community = 0,community_id_list = list(),full_width_community = False):
         """
         用来画社区的主题词云。
         :param image_save_to:词云图片保存的位置路径。
@@ -61,11 +63,16 @@ class communityTopicWordCloud(object):
         else:
             pass
         self.__get_community_topics__(community_id_list)
+        if full_width_community == True:
+            community_id_list = self.full_width_community_id_list
+        else:
+            pass
 
         #为社区进行画图操作。一个社区最多只画四个主题的词云。
         # number_of_community = len(self.community_id_list)
         plt_index = 0
-        for community_id in self.community_topics.keys():
+        # for community_id in self.community_topics.keys():
+        for community_id in community_id_list:
             plt_index = plt_index + 1
             community_topics = self.community_topics[community_id]
             # print community_topics
@@ -97,7 +104,7 @@ class communityTopicWordCloud(object):
                     # plt.title('Probability:' + str(round(float(topic['topic_probability']),3)))
                     index = index + 1
                 plt.savefig( image_save_to + 'community_' + str(community_id) + '_topic.png')
-            print 'number of communities:', number_of_community, 'index:', plt_index,'community id:', community_id,' has been saved to,',save_to
+            print 'number of communities:', len(community_id_list), 'index:', plt_index,'community id:', community_id,' has been saved to,',save_to
 
 
 
@@ -148,12 +155,16 @@ class communityTopicWordCloud(object):
             for line in words_file:
                 row = json.loads(line)
                 # print 'row',row
-                temp_topic = self.__parse_topic__(row = row)
-                if temp_topic == None:
+                temp_topic_full_width = self.__parse_topic__(row = row)
+                if temp_topic_full_width == None:
                     pass
                 else:
-                    community_topic_words[topic_index] = temp_topic
+                    community_topic_words[topic_index] = temp_topic_full_width['topic']
                     topic_index = topic_index + 1
+                    if temp_topic_full_width['full_width'] == True and community_id not in self.full_width_community_id_list:
+                        self.full_width_community_id_list.append(community_id)
+                    else:
+                        pass
             words_file.close()
         return community_topic_words
 
@@ -167,24 +178,33 @@ class communityTopicWordCloud(object):
         topic['topic_id'] = row['topicId']
         topic['topic_probability'] = row['topicProb']
         topic['word_list'] = {}
+        full_width = False
         for word in row['words']:
             word_name =  word['wordStr']
+            full_width_str = FullWidthStr(word_name)
+            word_name = full_width_str.stringQ2B()
             topic['word_list'][word_name] = word['weight']
+            if full_width_str.full_width == True:
+                full_width = True
+            else:
+                pass
         if len(topic['word_list']) == 0:
             return None
         else:
-            return topic
+            return {'topic':topic,'full_width':full_width}
 
 
 
 if __name__ == '__main__':
-    directory_list = ['2016-03-25','2016-03-26','total']
+    directory_list = ['2016-03-23','2016-03-24','2016-03-25','2016-03-26','2016-03-27','2016-03-28','2016-03-29', '2016-03-30','2016-03-31','total']
+    # directory_list = ['2016-03-23']
     topic_words_path = 'D:/LiuQL/eHealth/twitter/wordCloud/community_topic_words/'
     background_color = 'white'
     font_path = 'C:/Windows/fonts/Arial/arial.ttf'
     image_save_to = 'D:/LiuQL/eHealth/twitter/wordCloud/word_cloud_image/community_topic_words_image/'
 
     topic_type_list = ['without-verified-users','with-verified-users']
+    # topic_type_list = ['without-verified-users']
     number_of_community = 1000
 
     for directory_name in directory_list:
@@ -194,6 +214,9 @@ if __name__ == '__main__':
             print topic_words_file_path
             print save_to
             cloud = communityTopicWordCloud(topic_words_file_path=topic_words_file_path, font_path=font_path)
-            cloud.plot_word_cloud(community_id_list=[], image_save_to=save_to,number_of_community=number_of_community)
+            cloud.plot_word_cloud(community_id_list=[], image_save_to=save_to,number_of_community=number_of_community,full_width_community=True)
+
+            # cloud.__get_community_topics__(community_id_list=cloud.community_id_list)
+            print directory_name, topic_type,cloud.full_width_community_id_list
             print 'number of communities:', len(cloud.community_id_list)
-            time.sleep(5)
+            # time.sleep(5)

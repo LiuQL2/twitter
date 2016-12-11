@@ -8,6 +8,7 @@ import numpy as np
 import json
 from wordcloud import WordCloud
 from utility.functions import get_dirlist
+from FullWidthStr import FullWidthStr
 import chardet
 import sys
 import time
@@ -28,6 +29,7 @@ class commmunityTopWordCloud(object):
         self.background_color = background_color
         self.top_words_path_file = top_words_path_file
         self.community_id_list = []
+        self.full_width_community_id_list = []
         self.community_top_words = {}
         top_words_file = open(top_words_path_file,'r')
         for line in top_words_file:
@@ -37,10 +39,24 @@ class commmunityTopWordCloud(object):
                 pass
             else:
                 self.community_id_list.append(community_id)
-                self.community_top_words[community_id] = row.values()[0]
+                # self.community_top_words[community_id] = row.values()[0]
+                word_dict = row.values()[0]
+                temp_word_dict = {}
+                for key in word_dict.keys():
+                    word_str = key
+                    word_count = word_dict[key]
+                    full_width_str = FullWidthStr(word_str)
+                    word_str = full_width_str.stringQ2B()
+                    if full_width_str.full_width == True and community_id not in self.full_width_community_id_list:
+                        print key, word_str
+                        self.full_width_community_id_list.append(community_id)
+                    else:
+                        pass
+                    temp_word_dict[word_str] = word_count
+                self.community_top_words[community_id] = temp_word_dict
         top_words_file.close()
 
-    def plot_word_cloud(self,image_save_to,community_id_list = list(),file_name_key_word = ''):
+    def plot_word_cloud(self,image_save_to,community_id_list = list(),file_name_key_word = '',full_width_community = False):
         """
         画出社区hashtags和keywords。当传入的id_list为空时，表示输出所有的社区。
         :param image_save_to: 照片需要保存的位置
@@ -58,13 +74,18 @@ class commmunityTopWordCloud(object):
             community_id_list = self.community_id_list
         else:
             pass
+
+        if full_width_community == True:
+            community_id_list = self.full_width_community_id_list
+        else:
+            pass
         for community_id in community_id_list:
             word_cloud = WordCloud(font_path=self.font_path,background_color=self.background_color).generate(self.community_top_words[community_id])
             plt.imshow(word_cloud)
             plt.axis('off')
             # plt.title('community id: ' + str(community_id) + ','+ file_name_key_word)
             plt.savefig(image_save_to + 'community_' + str(community_id) + '_' +  file_name_key_word +  '.png')
-            print 'community id:', community_id, file_name_key_word,' word cloud has been saved to', image_save_to
+            print 'number of community:', len(community_id_list), 'community id:', community_id, file_name_key_word,' word cloud has been saved to', image_save_to
 
 if __name__ == '__main__':
     directory_list = ['2016_03_24','2016_03_25','2016_03_26','2016_03_27','2016_03_28','2016_03_29','2016_03_30','2016_03_31','total']
