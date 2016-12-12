@@ -18,9 +18,9 @@ class FilterData(object):
     def __init__(self,origin_data_file):
         self.origin_data_file = origin_data_file
         self.total_number = 0
-        self.dubai_strict_number = 0#number of Dubai (strict:meet the condition: 1 or 2, and meet 3)
-        self.dubai_no_strict_number = 0#number of Dubai (no strict: meet the condition: 1 or 2, but not meet 3
-        self.no_dubai_number = 0#number of No Dubai (not meet 1 or 2
+        self.dubai_strict_number = 0
+        self.dubai_no_strict_number = 0
+        self.no_dubai_number = 0
 
     def filter_data(self,no_dubai_file_name, dubai_strict_file_name,duai_no_strict_file_name):
         data_file = open(self.origin_data_file, 'r')
@@ -57,7 +57,7 @@ class FilterData(object):
         print 'number of Dubai (strict:meet the condition: 1 or 2, and meet 3):', self.dubai_strict_number
         print 'number of Dubai (no strict: meet the condition: 1 or 2, but not meet 3) :', self.dubai_no_strict_number
 
-        
+
 
 
 
@@ -107,10 +107,6 @@ class Record(object):
         else:
             return False
 
-        # if self.verify_utcOffset == False or self.verify_twitterTimeZone == False or self.verify_tweetLocationName == False:
-        #     return False
-        # else:
-        #     return True
 
 
     def verify_enrichCountry(self):
@@ -215,7 +211,7 @@ class Record(object):
 
 
     def verify_tweetLocationName(self):
-        if self.data['tweet']['location'] != None and 'name' in self.data['tweet']['location'].keys():
+        if 'location' in self.data['tweet'].keys() and self.data['tweet']['location'] != None and 'name' in self.data['tweet']['location'].keys():
             name = self.data['tweet']['location']['name']
             if name != None:
                 if 'dubai' not in name.lower() and u'دبي' not in name:
@@ -227,21 +223,22 @@ class Record(object):
         else:
             return True
 
+
 if __name__ == '__main__':
-    # record = Record(string_data=string)
-    # print record.verify_data()
-    origin_data_path = 'F:/Twitter/April/'
-    save_path = 'F:/Twitter/April/'
+    origin_data_path = '/pegasus/twitter-p-or-t-uae-201603.json.dxb/'
+    save_path = '/pegasus/harir/Qianlong/data/March/'
 
-    # origin_data_path = '/pegasus/'
-    # save_path = '/pegasus/harir/Qianlong/data/April/'
-
-
-    file_name_list = get_dirlist(origin_data_path,key_word_list=['201604','.json'])
-    file_name_list = [ 'no_dubai_twitter-p-or-t-uae-201604.json']
+    # file_name_list = get_dirlist(origin_data_path,key_word_list=['201604','.json'])
+    file_name_list = get_dirlist(origin_data_path,key_word_list=['f424-4f7c-b21c-33b34d491577','.json'],no_key_word_list=['.crc'])
+    # file_name_list = [ 'no_dubai_twitter-p-or-t-uae-201604.json']
     print len(file_name_list)
     print file_name_list
     time.sleep(10)
+    total_number = 0
+    no_dubai_number = 0
+    dubai_strict_number = 0
+    dubai_no_strict_number = 0
+
     for file_name in file_name_list:
         no_dubai_file = 'no_dubai_' + file_name
         dubai_strict_file = 'dubai_strict_' + file_name
@@ -249,7 +246,12 @@ if __name__ == '__main__':
         filter_data = FilterData(origin_data_file=origin_data_path + file_name)
         filter_data.filter_data(no_dubai_file_name=save_path + no_dubai_file,dubai_strict_file_name=save_path + dubai_strict_file, duai_no_strict_file_name=save_path + dubai_no_strict_file)
         filter_data.process_info()
+        total_number = total_number + filter_data.total_number
+        no_dubai_number = no_dubai_number + filter_data.no_dubai_number
+        dubai_strict_number = dubai_strict_number + filter_data.dubai_strict_number
+        dubai_no_strict_number = dubai_no_strict_number + filter_data.dubai_no_strict_number
 
-
-
-
+    print 'number of total:', total_number
+    print 'number of No Dubai (not meet 1 or 2):', no_dubai_number
+    print 'number of Dubai (strict:meet the condition: 1 or 2, and meet 3):', dubai_strict_number
+    print 'number of Dubai (no strict: meet the condition: 1 or 2, but not meet 3) :', dubai_no_strict_number
