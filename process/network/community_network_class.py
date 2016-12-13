@@ -14,7 +14,7 @@ from utility.functions import read_csv_as_dataFrame_by_chunk
 import csv
 import time
 
-class communityNetwork(object):
+class CommunityNetwork(object):
     def __init__(self,community_size, community_number,header = None):
         self.community_size = community_size
         self.community_number = community_number
@@ -42,6 +42,7 @@ class communityNetwork(object):
         print 'number of users:', len(keep_nodes_dataFrame)
         print keep_community_list
         self.community_nodes_dataFrame = keep_nodes_dataFrame
+        self.community_nodes_dataFrame = self.community_nodes_dataFrame.id
         return keep_nodes_dataFrame
 
 
@@ -80,7 +81,9 @@ class communityNetwork(object):
             if len(list(set(list(keep_nodes_dataFrame.community_id)))) == self.community_number:
                 break
         community_user_ordered_file.close()
+
         self.community_nodes_dataFrame = keep_nodes_dataFrame
+        self.community_nodes_dataFrame.index = keep_nodes_dataFrame.id
 
 
     def filter_verified_user(self,verified_user_path_file,sep = ',',header = None):
@@ -132,7 +135,7 @@ class communityNetwork(object):
                 if target in user_id_list:
                     community_edges_dataFrame = community_edges_dataFrame.append(
                         condidate_edges[condidate_edges.target == target])
-                    print 'get community_edges', 'keep', source, target
+                    print 'get community_edges', 'keep  ', source, target
                 else:
                     print 'get community_edges', 'filter', source, target
         self.community_edges_dataFrame = community_edges_dataFrame
@@ -215,14 +218,14 @@ if __name__ == '__main__':
     # id_label_file = path +  'user_all_yang.csv'
     # community_user_ordered_file = path +'new_community'
     # community_size = 2000
-    # commnnity_number = 8
+    # community_number = 8
     # number_of_top_users = 1000
     # label_users_number = 20
     # save_node_file_name = 'community_nodes.csv'
     # save_edge_file_name = 'community_edges.csv'
     #
     #
-    # community_network = communityNetwork(community_size=community_size,community_number=commnnity_number)
+    # community_network = CommunityNetwork(community_size=community_size,community_number=community_number)
     # community_network.get_community_nodes(user_community_path_file=userId_communityId_file)
     # community_network.get_community_top_nodes(number_of_top_users=number_of_top_users,community_user_ordered_path_file=community_user_ordered_file,filter_verified_user=True,verified_user_path_file=verified_user_file)
     # community_network.get_community_edges(total_edge_weight_path_file=total_edge_file,sep = ',',wether_hash=False)
@@ -244,7 +247,7 @@ if __name__ == '__main__':
     path_community_node_edge_save_to = '/pegasus/harir/Qianlong/data/network/node_edge/'
     qianlong_network_path = '/pegasus/harir/Qianlong/data/network/'
     community_size = 2000
-    commnnity_number = 8
+    community_number = 8
     number_of_top_users = 1000
     label_users_number = 20
     id_label_file = qianlong_network_path + 'user_all_yang.csv'
@@ -257,7 +260,7 @@ if __name__ == '__main__':
         save_node_file_name = community_user_ordered_file.replace('.icpm_ordered','') + '_nodes_top_' + str(number_of_top_users) + '_contain_verified' + '.csv'
         save_edge_file_name = community_user_ordered_file.replace('.icpm_ordered','') + '_edges_top_' + str(number_of_top_users) + '_contain_verified' + '.csv'
 
-        community_network = communityNetwork(community_size=community_size,community_number=commnnity_number)
+        community_network = CommunityNetwork(community_size=community_size,community_number=community_number)
         community_network.get_community_top_nodes(number_of_top_users=number_of_top_users,community_user_ordered_path_file=community_file_path + community_user_ordered_file,filter_verified_user=False,verified_user_path_file=verified_user_file)
         community_network.get_community_edges(total_edge_weight_path_file=total_edge_file,sep = '\t',wether_hash=False)
         community_network.label_nodes(top_node_size=label_users_number,label_path_file= id_label_file)
