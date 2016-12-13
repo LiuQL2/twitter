@@ -177,7 +177,7 @@ class communityNetwork(object):
         community_id_list = set(list(self.community_nodes_dataFrame.community_id))
         for community_id in community_id_list:
             print 'community id:', community_id, 'is being label...'
-            single_community_node_dataFrame = (self.community_nodes_dataFrame[self.community_nodes_dataFrame.community_id == community_id]).sort_values(by=['out_degree'], ascending=[0])
+            single_community_node_dataFrame = (self.community_nodes_dataFrame[self.community_nodes_dataFrame.community_id == community_id]).sort_values(by=['degree'], ascending=[0])
             top_id_list = list(single_community_node_dataFrame.id)[0:top_node_size]
             for id in top_id_list:
                 self.community_nodes_dataFrame.loc[[id], ['label']] = id_label_dataFrame.label[id]
