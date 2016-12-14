@@ -124,7 +124,7 @@ class CommunityTopicWordCloudApril(communityTopicWordCloud):
 
 
 if __name__ == '__main__':
-    directory_list = ['01_07','08_14']
+    directory_list = ['15_21','22_28','29_30']
     topic_words_path = 'D:/LiuQL/eHealth/twitter/wordCloud/April/community_topic_words/'
     background_color = 'white'
     font_path = 'C:/Windows/fonts/Arial/arial.ttf'
