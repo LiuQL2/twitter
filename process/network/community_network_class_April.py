@@ -63,6 +63,7 @@ if __name__ == '__main__':
     cycle_list = ['01_07','08_14','15_21','22_28','29_30']
 
     community_file_path = '/pegasus/harir/yangjinfeng/commitresult4/community2/inoutOrder/'
+    overlap_user_file_path = '/pegasus/harir/yangjinfeng/commitresult4/community2/'
     network_edge_file_path = '/pegasus/harir/yangjinfeng/commitresult4/network/'
     path_community_node_edge_save_to = '/pegasus/harir/Qianlong/data/April/network/node_edge/'
     id_label_file = network_edge_file_path + 'kloutScore_iDname.txt'
@@ -76,7 +77,7 @@ if __name__ == '__main__':
     for cycle in cycle_list:
         community_user_ordered_file = get_dirlist(path = community_file_path,key_word_list=[cycle,'icpm_ordered'])[0]
         edge_file = get_dirlist(path = network_edge_file_path,key_word_list=[cycle,'-network_weighted'])[0]
-        overlap_user_file = get_dirlist(path = community_file_path,key_word_list=[cycle,'icpm.overlap.txt'])[0]
+        overlap_user_file = get_dirlist(path = overlap_user_file_path,key_word_list=[cycle,'icpm.overlap.txt'])[0]
         print community_user_ordered_file
         print edge_file
         print overlap_user_file
@@ -92,7 +93,7 @@ if __name__ == '__main__':
         community_network.get_community_top_nodes(number_of_top_users=number_of_top_users,community_user_ordered_path_file=community_file_path + community_user_ordered_file,filter_verified_user=False,verified_user_path_file=verified_user_file)
         community_network.get_community_edges(total_edge_weight_path_file=network_edge_file_path + edge_file,sep = '\t',wether_hash=False)
         community_network.label_nodes(top_node_size=label_users_number,label_path_file= id_label_file)
-        community_network.find_overlap_users(overlap_path_file= community_file_path + overlap_user_file)
+        community_network.find_overlap_users(overlap_path_file= overlap_user_file_path + overlap_user_file)
         community_network.community_nodes_dataFrame.to_csv(path_community_node_edge_save_to + save_node_file_name,index = False, header = True, columns = ['id','community_id','label'])
         community_network.community_edges_dataFrame.to_csv(path_community_node_edge_save_to + save_edge_file_name, index = False, header= True, columns= ['source','target','weight'])
         print '\n' * 4
