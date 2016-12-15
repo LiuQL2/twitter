@@ -124,7 +124,7 @@ class CommunityTopicWordCloudApril(communityTopicWordCloud):
 
 
 if __name__ == '__main__':
-    directory_list = ['15_21','22_28','29_30']
+    directory_list = ['22_28','29_30']
     topic_words_path = 'D:/LiuQL/eHealth/twitter/wordCloud/April/community_topic_words/'
     background_color = 'white'
     font_path = 'C:/Windows/fonts/Arial/arial.ttf'
@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
     topic_type_list = ['without-verified-users','with-verified-users']
     # topic_type_list = ['without-verified-users']
-    number_of_community = 1000
+    number_of_community = 500
 
     for directory_name in directory_list:
         for topic_type in topic_type_list:

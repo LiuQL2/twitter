@@ -227,10 +227,12 @@ class Record(object):
 if __name__ == '__main__':
     origin_data_path = '/pegasus/twitter-p-or-t-uae-201603.json.dxb/'
     save_path = '/pegasus/harir/Qianlong/data/March/'
+    # origin_data_path = 'F:/Twitter/April/'
+    # save_path = 'F:/Twitter/April/'
 
     # file_name_list = get_dirlist(origin_data_path,key_word_list=['201604','.json'])
     file_name_list = get_dirlist(origin_data_path,key_word_list=['f424-4f7c-b21c-33b34d491577','.json'],no_key_word_list=['.crc'])
-    # file_name_list = [ 'no_dubai_twitter-p-or-t-uae-201604.json']
+    # file_name_list = [ 'twitter-p-or-t-uae-201604.json']
     print len(file_name_list)
     print file_name_list
     time.sleep(10)
