@@ -56,7 +56,7 @@ class commmunityTopWordCloud(object):
                 self.community_top_words[community_id] = temp_word_dict
         top_words_file.close()
 
-    def plot_word_cloud(self,image_save_to,community_id_list = list(),file_name_key_word = '',full_width_community = False):
+    def plot_word_cloud(self,image_save_to,number_of_community=0,community_id_list = list(),file_name_key_word = '',full_width_community = False):
         """
         画出社区hashtags和keywords。当传入的id_list为空时，表示输出所有的社区。
         :param image_save_to: 照片需要保存的位置
@@ -65,13 +65,19 @@ class commmunityTopWordCloud(object):
         :return: 无返回内容。
         """
         import matplotlib.pyplot as plt
+        if number_of_community == 0:
+            number_of_community = len(self.community_id_list)
+        else:
+            pass
+
         temp_community_id_list = []
         community_id_list = list(set(community_id_list))
         for community_id in community_id_list:
             temp_community_id_list.append(int(community_id))
         community_id_list = temp_community_id_list
+
         if len(community_id_list) == 0:
-            community_id_list = self.community_id_list
+            community_id_list = list(set(self.community_id_list))[0:number_of_community]
         else:
             pass
 
@@ -79,41 +85,53 @@ class commmunityTopWordCloud(object):
             community_id_list = self.full_width_community_id_list
         else:
             pass
+        community_index = 0
         for community_id in community_id_list:
+            community_index = community_index + 1
             word_cloud = WordCloud(font_path=self.font_path,background_color=self.background_color).generate(self.community_top_words[community_id])
             plt.imshow(word_cloud)
             plt.axis('off')
             # plt.title('community id: ' + str(community_id) + ','+ file_name_key_word)
             plt.savefig(image_save_to + 'community_' + str(community_id) + '_' +  file_name_key_word +  '.png')
-            print 'number of community:', len(community_id_list), 'community id:', community_id, file_name_key_word,' word cloud has been saved to', image_save_to
+            print 'number of community:', len(community_id_list),'community index:', community_index, 'community id:', community_id, file_name_key_word,' word cloud has been saved to', image_save_to
+
 
 if __name__ == '__main__':
-    directory_list = ['2016_03_24','2016_03_25','2016_03_26','2016_03_27','2016_03_28','2016_03_29','2016_03_30','2016_03_31','total']
-    directory_list = ['2016_03_30','2016_03_31','total']
-    top_words_path = 'D:/LiuQL/eHealth/twitter/wordCloud/community_top_words/'
+    #directory_list = ['2016-03-23','2016-03-24','2016-03-25','2016-03-26','2016-03-27','2016-03-28','2016-03-29', '2016-03-30','2016-03-31','total']
+    directory_list = ['15_21','22_28','29_30']
+    top_words_path = 'D:/LiuQL/eHealth/twitter/wordCloud/April/community_top_words/'
     background_color = 'white'
     font_path = 'C:/Windows/fonts/Arial/arial.ttf'
-    image_save_to = 'D:/LiuQL/eHealth/twitter/wordCloud/word_cloud_image/community_top_words_image/'
+    image_save_to = 'D:/LiuQL/eHealth/twitter/wordCloud/April/word_cloud_image/community_top_words_image/'
 
-    words_type_list = ['hashtags','keywords']
     words_type_list = ['hashtags']
-    # top_words_path_file = ''
-    # background_color = 'white'
-    # font_path = None
-    # image_save_to = '/pegasus/harir/Qianlong/data/word_cloud_image/community_top_words_image/'
-    # cloud = commmunityTopWordCloud(top_words_path_file=top_words_path_file,background_color=background_color,font_path=font_path)
-    # cloud.plot_word_cloud(image_save_to=image_save_to,community_id_list=[])
+    number_of_community = 500
 
+
+    # for March
+    #for directory_name in directory_list:
+    #    path = top_words_path + directory_name + '/'
+    #    for words_type in words_type_list:
+    #        print path
+    #        words_file = path + get_dirlist(path,key_word_list=[words_type])[0]
+    #        print words_file
+    #        save_to = image_save_to + directory_name + '/' + words_type + '/'
+    #        cloud = commmunityTopWordCloud(top_words_path_file=words_file,background_color=background_color,font_path=font_path)
+    #        print 'number of communities:', len(cloud.community_id_list)
+    #        # time.sleep(5)
+    #        cloud.plot_word_cloud(image_save_to=save_to,file_name_key_word=words_type,number_of_community=number_of_community,community_id_list=[],full_width_community=False)
+    #        print directory_name, words_type, cloud.full_width_community_id_list
+
+    #for April
     for directory_name in directory_list:
-        path = top_words_path + directory_name + '/'
-
-        print path
-
         for words_type in words_type_list:
-            words_file = path + get_dirlist(path,key_word_list=[words_type])[0]
+            path = top_words_path + directory_name + '/' + words_type + '/'
+            print path
+            words_file = path + get_dirlist(path,key_word_list=['all-langs'])[0]
             print words_file
-            save_to = image_save_to + directory_name + '/' + words_type + '/'
+            save_to = image_save_to + directory_name + '/'
             cloud = commmunityTopWordCloud(top_words_path_file=words_file,background_color=background_color,font_path=font_path)
             print 'number of communities:', len(cloud.community_id_list)
-            time.sleep(5)
-            cloud.plot_word_cloud(image_save_to=save_to,file_name_key_word=words_type,community_id_list=[])
+            # time.sleep(5)
+            cloud.plot_word_cloud(image_save_to=save_to,file_name_key_word=words_type,number_of_community=number_of_community,community_id_list=[],full_width_community=False)
+            print directory_name, words_type, cloud.full_width_community_id_list
